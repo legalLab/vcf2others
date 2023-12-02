@@ -36,12 +36,6 @@ grouping of individuals.
 
 ``` r
 library(vcfR)
-#> 
-#>    *****       ***   vcfR   ***       *****
-#>    This is vcfR 1.14.0 
-#>      browseVignettes('vcfR') # Documentation
-#>      citation('vcfR') # Citation
-#>    *****       *****      *****       *****
 library(dplyr)
 library(vcf2others)
 
@@ -261,21 +255,21 @@ vcf_outgrp <- vcf_extract_pops(vcf, indiv_group, groups1, f_invar = FALSE)
 
 # filter ingroup VCF for analyses then add outgroups
 vcf1 <- vcf_extract_pops(vcf, indiv_group, groups1, whitelist = FALSE, f_invar = FALSE) %>%
-  vcf_filter_missing_indivs(.9, f_invar = TRUE) %>%
+  vcf_filter_missing_indivs(.9, f_invar = FALSE) %>%
   vcf_filter_rank(.5) %>%
   vcf_filter_maf(.03) %>%
   vcf_filter_coverage(6) %>%
   vcf_filter_oneSNP() %>%
   vcf_filter_missingness(.4) %>%
-  vcf_filter_missing_indivs(.2, f_invar = TRUE) %>%
+  vcf_filter_missing_indivs(.2, f_invar = FALSE) %>%
   vcf_merge(vcf_outgrp) %>%
   vcf_filter_invariant()
 #> removed samples are: CTGA_H3327 
 #>  removed samples are: CTGA_H3600 
-#> [1] "final % missing data in VCF is 41.24 %"
+#> [1] "final % missing data in VCF is 60.45 %"
 #> [1] "final % missing data in VCF is 11.45 %"
 #> removed samples are: CTGA_H3646 
-#> [1] "final % missing data in VCF is 6.32 %"
+#> [1] "final % missing data in VCF is 6.38 %"
 #> Joining with `by = join_by(FORMAT, id)`
 ```
 
