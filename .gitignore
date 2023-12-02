@@ -2,7 +2,6 @@
 inst/doc
 /doc/
 /Meta/
-docs
 .Rbuildignore
 .Rhistory
 vignettes/*.md
