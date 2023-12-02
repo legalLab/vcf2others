@@ -1,6 +1,11 @@
 # vcf2others
 Convert VCF to Other Formats and More
 
+# Installation
+
+This package needs to be installed from GitHub.
+`devtools::install_github("legalLab/vcf2others")`
+
 ``` r
 library(vcf2others)
 ```
@@ -11,11 +16,6 @@ This package has two main functionalities. First, it is used for
 filtering, subsetting, merging and otherwise wrangling VCF files.
 Second, it is used for converting the VCF file to other population
 genetic and phylogenetic formats for downstream analyses.
-
-# Installation
-
-This package needs to be installed from GitHub.
-`devtools::install_github("legalLab/vcf2others")`
 
 # How to use the functions of this package
 
