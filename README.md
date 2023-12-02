@@ -39,14 +39,13 @@ library(vcfR)
 library(dplyr)
 library(vcf2others)
 
-# path to example files
-fpath <- paste0(system.file("extdata", package="vcf2others"), "/")
+# set path to example files and project name
+path <- paste0(system.file("extdata", package="vcf2others"), "/")
 # set path and project name
-path <- "/home/tomas/git/legal_public/packages/data/"
 project <- "trigonatus_all_sub"
 
 # load vcf
-vcf <- read.vcfR(paste0(fpath, project, ".vcf.gz"))
+vcf <- read.vcfR(paste0(path, project, ".vcf.gz"))
 #> Scanning file to determine attributes.
 #> File attributes:
 #>   meta lines: 22
@@ -66,7 +65,7 @@ vcf <- read.vcfR(paste0(fpath, project, ".vcf.gz"))
 #> All variants processed
 
 # read individuals to include
-indivs <- read.table(paste0(fpath, "indivs_b"), header = TRUE)$id %>%
+indivs <- read.table(paste0(path, "indivs_b"), header = TRUE)$id %>%
   as.character()
 
 # check if all indivs are in vcf_names
@@ -79,7 +78,7 @@ vcf_names <- colnames(vcf@gt)[-1] %>%
   mutate(id, id = as.character(id))
 
 # read sample to group assignment
-strata <- read.table(paste0(fpath, "strata"), header = TRUE) %>%
+strata <- read.table(paste0(path, "strata"), header = TRUE) %>%
   as_tibble() %>%
   mutate(id, id = as.character(id))
 
@@ -97,7 +96,7 @@ if (any(is.na(strata$pop) == TRUE)) {
 }
 
 # read groups to be used; filter only those that are actually present
-groups <- read.table(paste0(fpath, "groups"), header = TRUE)[,1] %>%
+groups <- read.table(paste0(path, "groups"), header = TRUE)[,1] %>%
   .[. %in% unique(strata$pop)] %>%
   as.factor()
 ```
@@ -300,7 +299,7 @@ vcf_names <- colnames(vcf@gt)[-1] %>%
   mutate(id, id = as.character(id))
 
 # read sample to group assignment
-strata <- read.table(paste0(fpath, "strata"), header = TRUE) %>%
+strata <- read.table(paste0(path, "strata"), header = TRUE) %>%
   as_tibble() %>%
   mutate(id, id = as.character(id))
 
@@ -318,7 +317,7 @@ if (any(is.na(strata$pop) == TRUE)) {
 }
 
 # read groups to be used; filter only those that are actually present
-groups <- read.table(paste0(fpath, "groups"), header = TRUE)[,1] %>%
+groups <- read.table(paste0(path, "groups"), header = TRUE)[,1] %>%
   .[. %in% unique(strata$pop)] %>%
   as.factor()
 
@@ -368,7 +367,7 @@ vcf_names <- colnames(vcf@gt)[-1] %>%
   mutate(id, id = as.character(id))
 
 # read sample to group assignment
-strata <- read.table(paste0(fpath, "strata"), header = TRUE) %>%
+strata <- read.table(paste0(path, "strata"), header = TRUE) %>%
   as_tibble() %>%
   mutate(id, id = as.character(id))
 
@@ -386,7 +385,7 @@ if (any(is.na(strata$pop) == TRUE)) {
 }
 
 # read groups to be used; filter only those that are actually present
-groups <- read.table(paste0(fpath, "groups"), header = TRUE)[,1] %>%
+groups <- read.table(paste0(path, "groups"), header = TRUE)[,1] %>%
   .[. %in% unique(strata$pop)] %>%
   as.factor()
 
