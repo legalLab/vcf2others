@@ -1,0 +1,22 @@
+Package: vcf2others
+Title: Convert VCF to Other Formats and More
+Version: 0.9.0
+Authors@R: 
+    person("Tomas", "Hrbek", , "hrbek@evoamazon.net", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-3239-7068"))
+Description: This package has two main functionalities. First, it is used for filtering, subsetting, merging and otherwise wrangling VCF files. Second, it is used for converting the VCF file to other population genetic and phylogenetic formats for downstream analyses.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    adegenet,
+    ape,
+    dplyr,
+    glue,
+    stringr,
+    vcfR
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
