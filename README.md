@@ -1,14 +1,7 @@
-# vcf2others
-Convert VCF to Other Formats and More
-
 # Installation
 
 This package needs to be installed from GitHub.
 `devtools::install_github("legalLab/vcf2others")`
-
-``` r
-library(vcf2others)
-```
 
 # Introduction
 
@@ -40,24 +33,24 @@ library(dplyr)
 library(vcf2others)
 
 # set path to example files and project name
-path <- paste0(system.file("extdata", package="vcf2others"), "/")
-# set path and project name
-project <- "trigonatus_all_sub"
+data_path <- paste0(system.file("extdata", package="vcf2others"), "/")
+project <- "crocs_"
+postfix <- "discosnp_sub"
 
 # load vcf
-vcf <- read.vcfR(paste0(path, project, ".vcf.gz"))
+vcf <- read.vcfR(paste0(data_path, project, postfix, ".vcf.gz"))
 #> Scanning file to determine attributes.
 #> File attributes:
 #>   meta lines: 22
 #>   header_line: 23
 #>   variant count: 10000
-#>   column count: 21
+#>   column count: 26
 #> Meta line 22 read in.
 #> All meta lines processed.
 #> gt matrix initialized.
 #> Character matrix gt created.
 #>   Character matrix gt rows: 10000
-#>   Character matrix gt cols: 21
+#>   Character matrix gt cols: 26
 #>   skip: 0
 #>   nrows: 10000
 #>   row_num: 0
@@ -65,40 +58,40 @@ vcf <- read.vcfR(paste0(path, project, ".vcf.gz"))
 #> All variants processed
 
 # read individuals to include
-indivs <- read.table(paste0(path, "indivs_b"), header = TRUE)$id %>%
+indivs <- read.table(paste0(data_path, "indivs_b"), header = TRUE)$id %>%
   as.character()
 
 # check if all indivs are in vcf_names
 if (any(!(indivs %in% colnames(vcf@gt)[-1]))) stop(paste("Some individuals in list not in VCF"))
 
-# read all sample names in vcf
-vcf_names <- colnames(vcf@gt)[-1] %>%
-  as_tibble() %>%
-  rename(id = 1) %>%
-  mutate(id, id = as.character(id))
-
-# read sample to group assignment
-strata <- read.table(paste0(path, "strata"), header = TRUE) %>%
-  as_tibble() %>%
-  mutate(id, id = as.character(id))
-
-# assign samples in vcf to groups
-strata <- vcf_names %>%
-  left_join(strata)
+# get groups and group info on samples in vcf
+# default file names for strata is "strata" and for groups "groups"
+project_info <- get_vcf_group_info(vcf, data_path)
 #> Joining with `by = join_by(id)`
+```
 
-# check if all samples in vcf are assigned to groups
-if (any(is.na(strata$pop) == TRUE)) {
-  print("vcf has individuals not assigned to a group")
-  print(strata[is.na(strata$pop) == TRUE,])
-} else {
-  indiv_group <- as.factor(strata$pop)
-}
+## Assessment of Missing Data
 
-# read groups to be used; filter only those that are actually present
-groups <- read.table(paste0(path, "groups"), header = TRUE)[,1] %>%
-  .[. %in% unique(strata$pop)] %>%
-  as.factor()
+The function `assess_vcf_missing_data()` is used to generate a table and
+graph of missing data for each sample in a VCF. It is useful for
+visualizing data before and after filtering, and evaluate the effect of
+filtering. The function accepts parameters which form part of the name
+of the input file. The idea is that the VCF name contains information on
+the name of the project (project), how the VCF was extracted (postfix),
+and how it was filtered (fltr). The “postfix” and “fltr” can be left
+blank if the VCF name does not contain this information. Samples are
+ordered and colored by group assignment.
+
+``` r
+# define results path
+res_path <- data_path
+# species for plot title
+species <- "Paleosuchus/Caiman"
+# filter - filter parameters in file name
+fltr <- ""
+
+assess_vcf_missing_data(vcf, data_path, res_path, project, postfix, fltr, species)
+#> Joining with `by = join_by(id)`
 ```
 
 ## Filtering, subsetting, merging and otherwise wrangling VCF files
@@ -121,13 +114,13 @@ the listed individuals/groups).
 
 ``` r
 # subset VCF by individuals (default whitelist = TRUE, remove invariants = TRUE)
-indivs1 <- c("CTGA_H4683", "CTGA_H4689")
+indivs1 <- c("CTGA_H4635", "CTGA_H4667")
 vcf1 <- vcf_extract_indivs(vcf, indivs1)
 
 # subset VCF by groups (default whitelist = TRUE, remove invariants = TRUE)
-groups1 <- c("bob", "joe") %>%
+groups1 <- c("paleosuchus_1", "paleosuchus_2") %>%
   as.factor()
-vcf1 <- vcf_extract_pops(vcf, indiv_group, groups1)
+vcf1 <- vcf_extract_pops(vcf, project_info$indiv_group, groups1)
 
 # subset VCF by n random loci (default n_loci = 1000)
 vcf1 <- vcf_sub_loci(vcf, n_loci = 5000)
@@ -158,42 +151,35 @@ however, some analyses such as FineRadStructure work with linked SNPs.
 ``` r
 # filter VCF for analyses (unlinked SNPs)
 vcf_oneSNP <- vcf_extract_indivs(vcf, indivs, whitelist = FALSE) %>%
-  vcf_filter_missing_indivs(.9) %>%
+  vcf_filter_missing_indivs(.8) %>%
   vcf_filter_rank(.5) %>%
   vcf_filter_maf(.03) %>%
   vcf_filter_coverage(6) %>%
   vcf_filter_oneSNP() %>%
-  vcf_filter_missingness(.4) %>%
-  vcf_filter_missing_indivs(.2)
-#> removed samples are: CTGA_H3327 
-#>  removed samples are: CTGA_H3600 
-#> [1] "final % missing data in VCF is 57.17 %"
-#> [1] "final % missing data in VCF is 25.42 %"
-#> removed samples are: CTGA_H3646 
-#>  removed samples are: CTGA_H4598 
-#>  removed samples are: CTGA_H4613 
-#>  removed samples are: CTGA_H4683 
-#>  removed samples are: CTGA_H4689 
-#> [1] "final % missing data in VCF is 2.92 %"
+  vcf_filter_missingness(.2) %>%
+  vcf_filter_missing_indivs(.3)
+#> removed samples are: CTGA_H4663 
+#>  removed samples are: CTGA_H4668 
+#> [1] "final % missing data in VCF is 54.91 %"
+#> [1] "final % missing data in VCF is 7.66 %"
+#> removed samples are: CTGA_H4667 
+#> [1] "final % missing data in VCF is 5.74 %"
 
 # filter VCF for analyses (linked SNPs)
 vcf_multiSNP <- vcf_extract_indivs(vcf, indivs, whitelist = FALSE) %>%
-  vcf_filter_missing_indivs(.9) %>%
+  vcf_filter_missing_indivs(.8) %>%
   vcf_filter_rank(.5) %>%
   vcf_filter_maf(.03) %>%
   vcf_filter_coverage(6) %>%
   vcf_filter_multiSNP() %>%
-  vcf_filter_missingness(.4) %>%
-  vcf_filter_missing_indivs(.2)
-#> removed samples are: CTGA_H3327 
-#>  removed samples are: CTGA_H3600 
-#> [1] "final % missing data in VCF is 57.17 %"
-#> [1] "final % missing data in VCF is 25.2 %"
-#> removed samples are: CTGA_H3646 
-#>  removed samples are: CTGA_H4613 
-#>  removed samples are: CTGA_H4683 
-#>  removed samples are: CTGA_H4689 
-#> [1] "final % missing data in VCF is 5.15 %"
+  vcf_filter_missingness(.2) %>%
+  vcf_filter_missing_indivs(.3)
+#> removed samples are: CTGA_H4663 
+#>  removed samples are: CTGA_H4668 
+#> [1] "final % missing data in VCF is 54.91 %"
+#> [1] "final % missing data in VCF is 6.67 %"
+#> removed samples are: CTGA_H4667 
+#> [1] "final % missing data in VCF is 4.57 %"
 ```
 
 ### Extracting, merging and adding
@@ -218,21 +204,21 @@ FALSE” flag.
 
 ``` r
 # extract individuals from VCF (keep all loci)
-indivs1 <- c("CTGA_H4644", "CTGA_H4661", "CTGA_H4683", "CTGA_H4689")
+indivs1 <- c("CTGA_H4635", "CTGA_H4637", "CTGA_H4643", "CTGA_H4645", "CTGA_H4647")
 vcf_outgrp <- vcf_extract_indivs(vcf, indivs1, f_invar = FALSE)
 vcf_ingrp <- vcf_extract_indivs(vcf, indivs1, whitelist = FALSE, f_invar = FALSE)
 
 # extract groups of individuals from VCF (keep all loci)
-groups1 <- as.factor("outgrp")
-vcf_outgrp <- vcf_extract_pops(vcf, indiv_group, groups1, f_invar = FALSE)
-vcf_ingrp <- vcf_extract_pops(vcf, indiv_group, groups1, whitelist = FALSE, f_invar = FALSE)
+groups1 <- as.factor("caiman")
+vcf_outgrp <- vcf_extract_pops(vcf, project_info$indiv_group, groups1, f_invar = FALSE)
+vcf_ingrp <- vcf_extract_pops(vcf, project_info$indiv_group, groups1, whitelist = FALSE, f_invar = FALSE)
 
 # merge vcf_outgrp into vcf_ingrp
 vcf1 <- vcf_merge(vcf_ingrp, vcf_outgrp)
 #> Joining with `by = join_by(FORMAT, id)`
 
 # add individuals from vcf_outgrp into vcf_ingrp (whitelist = TRUE is default)
-indivs1 <- c("CTGA_H4683", "CTGA_H4689")
+indivs1 <- c("CTGA_H4637", "CTGA_H4643", "CTGA_H4645")
 vcf1 <- vcf_add_indivs(vcf_ingrp, vcf_outgrp, indivs1)
 #> Joining with `by = join_by(FORMAT, id)`
 ```
@@ -249,26 +235,26 @@ and remove any invariant SNPs.
 
 ``` r
 # extract outgroup from VCF (keep all loci)
-groups1 <- as.factor("outgrp")
-vcf_outgrp <- vcf_extract_pops(vcf, indiv_group, groups1, f_invar = FALSE)
+groups1 <- as.factor("caiman")
+vcf_outgrp <- vcf_extract_pops(vcf, project_info$indiv_group, groups1, f_invar = FALSE)
 
 # filter ingroup VCF for analyses then add outgroups
-vcf1 <- vcf_extract_pops(vcf, indiv_group, groups1, whitelist = FALSE, f_invar = FALSE) %>%
-  vcf_filter_missing_indivs(.9, f_invar = FALSE) %>%
+vcf1 <- vcf_extract_pops(vcf, project_info$indiv_group, groups1, whitelist = FALSE, f_invar = FALSE) %>%
+  vcf_filter_missing_indivs(.8, f_invar = FALSE) %>%
   vcf_filter_rank(.5) %>%
   vcf_filter_maf(.03) %>%
   vcf_filter_coverage(6) %>%
   vcf_filter_oneSNP() %>%
-  vcf_filter_missingness(.4) %>%
-  vcf_filter_missing_indivs(.2, f_invar = FALSE) %>%
+  vcf_filter_missingness(.2) %>%
+  vcf_filter_missing_indivs(.3, f_invar = FALSE) %>%
   vcf_merge(vcf_outgrp) %>%
   vcf_filter_invariant()
-#> removed samples are: CTGA_H3327 
-#>  removed samples are: CTGA_H3600 
-#> [1] "final % missing data in VCF is 60.45 %"
-#> [1] "final % missing data in VCF is 11.45 %"
-#> removed samples are: CTGA_H3646 
-#> [1] "final % missing data in VCF is 6.38 %"
+#> removed samples are: CTGA_H4663 
+#>  removed samples are: CTGA_H4668 
+#> [1] "final % missing data in VCF is 57.52 %"
+#> [1] "final % missing data in VCF is 3.33 %"
+#> removed samples are: CTGA_H4667 
+#> [1] "final % missing data in VCF is NaN %"
 #> Joining with `by = join_by(FORMAT, id)`
 ```
 
@@ -286,111 +272,61 @@ the `vcf2genlight()` function is called within a script using functions
 of the `adegenet` package rather than importing the genlight object.
 
 ``` r
-project <- "trigonatus"
+res_path <- data_path
+project <- "trigonatus_"
+postfix <- "discosnp_sub"
 
 ##########
 # datasets for analyses with unlinked SNPs
 vcf <- vcf_oneSNP
-
-# read all sample names in vcf
-vcf_names <- colnames(vcf@gt)[-1] %>%
-  as_tibble() %>%
-  rename(id = 1) %>%
-  mutate(id, id = as.character(id))
-
-# read sample to group assignment
-strata <- read.table(paste0(path, "strata"), header = TRUE) %>%
-  as_tibble() %>%
-  mutate(id, id = as.character(id))
-
-# assign samples in vcf to groups
-strata <- vcf_names %>%
-  left_join(strata)
+# get groups and group info on samples in vcf
+project_info <- get_vcf_group_info(vcf, data_path)
 #> Joining with `by = join_by(id)`
-
-# check if all samples in vcf are assigned to groups
-if (any(is.na(strata$pop) == TRUE)) {
-  print("vcf has individuals not assigned to a group")
-  print(strata[is.na(strata$pop) == TRUE,])
-} else {
-  indiv_group <- as.factor(strata$pop)
-}
-
-# read groups to be used; filter only those that are actually present
-groups <- read.table(paste0(path, "groups"), header = TRUE)[,1] %>%
-  .[. %in% unique(strata$pop)] %>%
-  as.factor()
 
 ##########
 # export data formats
 # migrate-n https://peterbeerli.com/migrate-html5/
-vcf2migrate(vcf, indiv_group, groups, out_file = paste0(path, project, '_migrateN.txt'))
+vcf2migrate(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_migrate.txt'))
 # migrate-n - new more compact heterozygosity format
-vcf2migrate(vcf, indiv_group, groups, out_file = paste0(path, project, '_migrateH.txt'), method = "H")
-# arlequin 
-vcf2arlequin(vcf, indiv_group, groups, out_file = paste0(path, project, '.arp'))
-# structure 
-vcf2structure(vcf, indiv_group, groups, out_file = paste0(path, project, '.str'))
-# faststucture 
-vcf2structure(vcf, indiv_group, groups, out_file = paste0(path, project, '.fstr'), method = "F")
-# genepop 
-vcf2genepop(vcf, indiv_group, groups, out_file = paste0(path, project, '.gen'))
-# smartsnp 
-vcf2smartsnp(vcf, indiv_group, groups, out_file = paste0(path, project, '.smartsnp'))
-# eigenstrat 
-vcf2eigenstrat(vcf, indiv_group, groups, out_file = paste0(path, project, '_eigenstrat'))
-# bayescan 
-vcf2bayescan(vcf, indiv_group, groups, out_file = paste0(path, project, '.bayescan'))
-# treemix 
-vcf2treemix(vcf, indiv_group, groups, out_file = paste0(path, project, '.treemix'))
-# apparent 
-vcf2apparent(vcf, indiv_group, groups, out_file = paste0(path, project, '.apparent'))
-# related 
-vcf2related(vcf, indiv_group, groups, out_file = paste0(path, project, '.related'))
+vcf2migrate(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_migrateH.txt'), method = "H")
+# arlequin http://cmpg.unibe.ch/software/arlequin35/
+vcf2arlequin(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.arp'))
+# structure https://web.stanford.edu/group/pritchardlab/structure.html
+vcf2structure(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.str'))
+# faststucture http://rajanil.github.io/fastStructure/
+vcf2structure(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.fstr'), method = "F")
+# genepop https://gitlab.mbb.univ-montp2.fr/francois/genepop
+vcf2genepop(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.gen'))
+# smartsnp https://github.com/ChristianHuber/smartsnp
+vcf2smartsnp(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.smartsnp'))
+# eigenstrat https://github.com/DReichLab/EIG/tree/master
+vcf2eigenstrat(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_eigenstrat'))
+# bayescan https://github.com/mfoll/BayeScan
+vcf2bayescan(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.bayescan'))
+# treemix https://bitbucket.org/nygcresearch/treemix/wiki/Home
+vcf2treemix(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.treemix'))
+# apparent https://github.com/halelab/apparent/tree/master
+vcf2apparent(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.apparent'))
+# related https://github.com/timothyfrasier/related
+vcf2related(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.related'))
 # dataframe with population membership in the last column
-vcf2df(vcf, indiv_group, groups, TRUE, out_file = paste0(path, project, '.df'))
-# snapp 
-vcf2snapp(vcf, indiv_group, groups, out_file = paste0(path, project, '_snapp.nex'))
-# nexus - only SNPs, meant for SDVq analyses
-vcf2nexus(vcf, indiv_group, groups, out_file = paste0(path, project, '_sdvq.nex'))
-# fasta 
-vcf2fasta(vcf, indiv_group, groups, TRUE, out_file = paste0(path, project, '.fas'))
+vcf2df(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.df'))
+# snapp https://www.beast2.org/snapp/
+vcf2snapp(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_snapp.nex'))
+# nexus - only SNPs, meant for SDVq analyses https://www.asc.ohio-state.edu/kubatko.2/software/SVDquartets/
+vcf2nexus(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_sdvq.nex'))
+# fasta https://www.ncbi.nlm.nih.gov/genbank/fastaformat/
+vcf2fasta(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.fna'))
 
 ##########
 # datasets for analyses with linked SNPs
 vcf <- vcf_multiSNP
-
-# read all sample names in vcf
-vcf_names <- colnames(vcf@gt)[-1] %>%
-  as_tibble() %>%
-  rename(id = 1) %>%
-  mutate(id, id = as.character(id))
-
-# read sample to group assignment
-strata <- read.table(paste0(path, "strata"), header = TRUE) %>%
-  as_tibble() %>%
-  mutate(id, id = as.character(id))
-
-# assign samples in vcf to groups
-strata <- vcf_names %>%
-  left_join(strata)
+# get groups and group info on samples in vcf
+project_info <- get_vcf_group_info(vcf, data_path)
 #> Joining with `by = join_by(id)`
-
-# check if all samples in vcf are assigned to groups
-if (any(is.na(strata$pop) == TRUE)) {
-  print("vcf has individuals not assigned to a group")
-  print(strata[is.na(strata$pop) == TRUE,])
-} else {
-  indiv_group <- as.factor(strata$pop)
-}
-
-# read groups to be used; filter only those that are actually present
-groups <- read.table(paste0(path, "groups"), header = TRUE)[,1] %>%
-  .[. %in% unique(strata$pop)] %>%
-  as.factor()
 
 ##########
 # export data formats
 # fineRadStructure - expects VCF of linked SNPs
-vcf2fineRadStructure(vcf, indiv_group, groups, out_file = paste0(path, project, '.finerad'))
+vcf2fineRadStructure(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.finerad'))
 ```
