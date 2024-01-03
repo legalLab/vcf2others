@@ -17,6 +17,7 @@ Imports:
     glue,
     RColorBrewer,
     stringr,
+    svglite,
     tibble,
     vcfR
 Suggests: 
