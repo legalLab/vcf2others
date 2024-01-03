@@ -13,8 +13,11 @@ Imports:
     adegenet,
     ape,
     dplyr,
+    ggplot2,
     glue,
+    RColorBrewer,
     stringr,
+    tibble,
     vcfR
 Suggests: 
     knitr,
