@@ -287,8 +287,6 @@ project_info <- get_vcf_group_info(vcf, data_path)
 # export data formats
 # migrate-n https://peterbeerli.com/migrate-html5/
 vcf2migrate(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_migrate.txt'))
-# migrate-n - new more compact heterozygosity format
-vcf2migrate(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '_migrateH.txt'), method = "H")
 # arlequin http://cmpg.unibe.ch/software/arlequin35/
 vcf2arlequin(vcf, project_info$indiv_group, project_info$groups, out_file = paste0(res_path, project, postfix, '.arp'))
 # structure https://web.stanford.edu/group/pritchardlab/structure.html
