@@ -75,8 +75,6 @@ Hrbek</h4>
 </h2>
 <p>This package needs to be installed from GitHub.
 <code>devtools::install_github("legalLab/vcf2others")</code></p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://legallab.github.io/vcf2others/">vcf2others</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
@@ -104,96 +102,95 @@ keeping/excluding individuals and groups of individuals during filtering
 and during conversion to other data formats. The strata file is also
 necessary since many of the population genetic formats require
 information on grouping of individuals.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcfR)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    *****       ***   vcfR   ***       *****</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    This is vcfR 1.14.0 </span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      browseVignettes('vcfR') # Documentation</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      citation('vcfR') # Citation</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    *****       *****      *****       *****</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     filter, lag</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcf2others)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># set path to example files and project name</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>path <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">system.file</span>(<span class="st">"extdata"</span>, <span class="at">package=</span><span class="st">"vcf2others"</span>), <span class="st">"/"</span>)</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># set path and project name</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>project <span class="ot">&lt;-</span> <span class="st">"trigonatus_all_sub"</span></span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co"># load vcf</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>vcf <span class="ot">&lt;-</span> <span class="fu">read.vcfR</span>(<span class="fu">paste0</span>(path, project, <span class="st">".vcf.gz"</span>))</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Scanning file to determine attributes.</span></span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; File attributes:</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   meta lines: 22</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   header_line: 23</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variant count: 10000</span></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   column count: 21</span></span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>Meta line <span class="dv">22</span> read in.</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; All meta lines processed.</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gt matrix initialized.</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Character matrix gt created.</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Character matrix gt rows: 10000</span></span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Character matrix gt cols: 21</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   skip: 0</span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   nrows: 10000</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   row_num: 0</span></span>
-<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">1000</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">2000</span></span>
-<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">3000</span></span>
-<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">4000</span></span>
-<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">5000</span></span>
-<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">6000</span></span>
-<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">7000</span></span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">8000</span></span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">9000</span></span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">10000</span></span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>Processed variant<span class="sc">:</span> <span class="dv">10000</span></span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; All variants processed</span></span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co"># read individuals to include</span></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>indivs <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="fu">paste0</span>(path, <span class="st">"indivs_b"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>id <span class="sc">%&gt;%</span></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.character</span>()</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="co"># check if all indivs are in vcf_names</span></span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="sc">!</span>(indivs <span class="sc">%in%</span> <span class="fu">colnames</span>(vcf<span class="sc">@</span>gt)[<span class="sc">-</span><span class="dv">1</span>]))) <span class="fu">stop</span>(<span class="fu">paste</span>(<span class="st">"Some individuals in list not in VCF"</span>))</span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="co"># read all sample names in vcf</span></span>
-<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>vcf_names <span class="ot">&lt;-</span> <span class="fu">colnames</span>(vcf<span class="sc">@</span>gt)[<span class="sc">-</span><span class="dv">1</span>] <span class="sc">%&gt;%</span></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">id =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(id, <span class="at">id =</span> <span class="fu">as.character</span>(id))</span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="co"># read sample to group assignment</span></span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>strata <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="fu">paste0</span>(path, <span class="st">"strata"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(id, <span class="at">id =</span> <span class="fu">as.character</span>(id))</span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="co"># assign samples in vcf to groups</span></span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>strata <span class="ot">&lt;-</span> vcf_names <span class="sc">%&gt;%</span></span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(strata)</span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1m [22mJoining with `by = join_by(id)`</span></span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="co"># check if all samples in vcf are assigned to groups</span></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">is.na</span>(strata<span class="sc">$</span>pop) <span class="sc">==</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"vcf has individuals not assigned to a group"</span>)</span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(strata[<span class="fu">is.na</span>(strata<span class="sc">$</span>pop) <span class="sc">==</span> <span class="cn">TRUE</span>,])</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>  indiv_group <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(strata<span class="sc">$</span>pop)</span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="co"># read groups to be used; filter only those that are actually present</span></span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>groups <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="fu">paste0</span>(path, <span class="st">"groups"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)[,<span class="dv">1</span>] <span class="sc">%&gt;%</span></span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>  .[. <span class="sc">%in%</span> <span class="fu">unique</span>(strata<span class="sc">$</span>pop)] <span class="sc">%&gt;%</span></span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.factor</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcfR)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    *****       ***   vcfR   ***       *****</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    This is vcfR 1.15.0 </span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      browseVignettes('vcfR') # Documentation</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      citation('vcfR') # Citation</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    *****       *****      *****       *****</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     filter, lag</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vcf2others)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># set path to example files and project name</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>data_path <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="fu">system.file</span>(<span class="st">"extdata"</span>, <span class="at">package=</span><span class="st">"vcf2others"</span>), <span class="st">"/"</span>)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>project <span class="ot">&lt;-</span> <span class="st">"crocs_"</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>postfix <span class="ot">&lt;-</span> <span class="st">"discosnp_sub"</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="co"># load vcf</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>vcf <span class="ot">&lt;-</span> <span class="fu">read.vcfR</span>(<span class="fu">paste0</span>(data_path, project, postfix, <span class="st">".vcf.gz"</span>))</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Scanning file to determine attributes.</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; File attributes:</span></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   meta lines: 22</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   header_line: 23</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   variant count: 10000</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   column count: 26</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>Meta line <span class="dv">22</span> read in.</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; All meta lines processed.</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; gt matrix initialized.</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Character matrix gt created.</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Character matrix gt rows: 10000</span></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Character matrix gt cols: 26</span></span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   skip: 0</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   nrows: 10000</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   row_num: 0</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">1000</span></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">2000</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">3000</span></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">4000</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">5000</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">6000</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">7000</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">8000</span></span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">9000</span></span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>Processed variant <span class="dv">10000</span></span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>Processed variant<span class="sc">:</span> <span class="dv">10000</span></span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; All variants processed</span></span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a><span class="co"># read individuals to include</span></span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>indivs <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="fu">paste0</span>(data_path, <span class="st">"indivs_b"</span>), <span class="at">header =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>id <span class="sc">%&gt;%</span></span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.character</span>()</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="co"># check if all indivs are in vcf_names</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(<span class="sc">!</span>(indivs <span class="sc">%in%</span> <span class="fu">colnames</span>(vcf<span class="sc">@</span>gt)[<span class="sc">-</span><span class="dv">1</span>]))) <span class="fu">stop</span>(<span class="fu">paste</span>(<span class="st">"Some individuals in list not in VCF"</span>))</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="co"># get groups and group info on samples in vcf</span></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a><span class="co"># default file names for strata is "strata" and for groups "groups"</span></span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a>project_info <span class="ot">&lt;-</span> <span class="fu">get_vcf_group_info</span>(vcf, data_path)</span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  [1m [22mJoining with `by = join_by(id)`</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="assessment-of-missing-data">Assessment of Missing Data<a class="anchor" aria-label="anchor" href="#assessment-of-missing-data"></a>
+</h3>
+<p>The function <code><a href="../reference/assess_vcf_missing_data.html">assess_vcf_missing_data()</a></code> is used to
+generate a table and graph of missing data for each sample in a VCF. It
+is useful for visualizing data before and after filtering, and evaluate
+the effect of filtering. The function accepts parameters which form part
+of the name of the input file. The idea is that the VCF name contains
+information on the name of the project (project), how the VCF was
+extracted (postfix), and how it was filtered (fltr). The “postfix” and
+“fltr” can be left blank if the VCF name does not contain this
+information. Samples are ordered and colored by group assignment.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># define results path</span></span>
+<span><span class="va">res_path</span> <span class="op">&lt;-</span> <span class="va">data_path</span></span>
+<span><span class="co"># species for plot title</span></span>
+<span><span class="va">species</span> <span class="op">&lt;-</span> <span class="st">"Paleosuchus/Caiman"</span></span>
+<span><span class="co"># filter - filter parameters in file name</span></span>
+<span><span class="va">fltr</span> <span class="op">&lt;-</span> <span class="st">""</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/assess_vcf_missing_data.html">assess_vcf_missing_data</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">data_path</span>, <span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="va">fltr</span>, <span class="va">species</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Joining with `by = join_by(id)`</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="filtering-subsetting-merging-and-otherwise-wrangling-vcf-files">Filtering, subsetting, merging and otherwise wrangling VCF
@@ -217,13 +214,13 @@ listed individuals/groups) or blacklist (remove the listed
 individuals/groups).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># subset VCF by individuals (default whitelist = TRUE, remove invariants = TRUE)</span></span>
-<span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4683"</span>, <span class="st">"CTGA_H4689"</span><span class="op">)</span></span>
+<span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4635"</span>, <span class="st">"CTGA_H4667"</span><span class="op">)</span></span>
 <span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># subset VCF by groups (default whitelist = TRUE, remove invariants = TRUE)</span></span>
-<span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bob"</span>, <span class="st">"joe"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"paleosuchus_1"</span>, <span class="st">"paleosuchus_2"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups1</span><span class="op">)</span></span>
+<span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">groups1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># subset VCF by n random loci (default n_loci = 1000)</span></span>
 <span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_sub_loci.html">vcf_sub_loci</a></span><span class="op">(</span><span class="va">vcf</span>, n_loci <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
@@ -255,42 +252,35 @@ with linked SNPs.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># filter VCF for analyses (unlinked SNPs)</span></span>
 <span><span class="va">vcf_oneSNP</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.8</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_rank.html">vcf_filter_rank</a></span><span class="op">(</span><span class="fl">.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_maf.html">vcf_filter_maf</a></span><span class="op">(</span><span class="fl">.03</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_coverage.html">vcf_filter_coverage</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_oneSNP.html">vcf_filter_oneSNP</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missingness.html">vcf_filter_missingness</a></span><span class="op">(</span><span class="fl">.4</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; removed samples are: CTGA_H3327 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H3600 </span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 57.17 %"</span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 25.42 %"</span></span>
-<span><span class="co">#&gt; removed samples are: CTGA_H3646 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4598 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4613 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4683 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4689 </span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 2.92 %"</span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missingness.html">vcf_filter_missingness</a></span><span class="op">(</span><span class="fl">.2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; removed samples are: CTGA_H4663 </span></span>
+<span><span class="co">#&gt;  removed samples are: CTGA_H4668 </span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 54.91 %"</span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 7.66 %"</span></span>
+<span><span class="co">#&gt; removed samples are: CTGA_H4667 </span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 5.74 %"</span></span>
 <span></span>
 <span><span class="co"># filter VCF for analyses (linked SNPs)</span></span>
 <span><span class="va">vcf_multiSNP</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.9</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.8</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_rank.html">vcf_filter_rank</a></span><span class="op">(</span><span class="fl">.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_maf.html">vcf_filter_maf</a></span><span class="op">(</span><span class="fl">.03</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_coverage.html">vcf_filter_coverage</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_multiSNP.html">vcf_filter_multiSNP</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missingness.html">vcf_filter_missingness</a></span><span class="op">(</span><span class="fl">.4</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; removed samples are: CTGA_H3327 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H3600 </span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 57.17 %"</span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 25.2 %"</span></span>
-<span><span class="co">#&gt; removed samples are: CTGA_H3646 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4613 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4683 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H4689 </span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 5.15 %"</span></span></code></pre></div>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missingness.html">vcf_filter_missingness</a></span><span class="op">(</span><span class="fl">.2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; removed samples are: CTGA_H4663 </span></span>
+<span><span class="co">#&gt;  removed samples are: CTGA_H4668 </span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 54.91 %"</span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 6.67 %"</span></span>
+<span><span class="co">#&gt; removed samples are: CTGA_H4667 </span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 4.57 %"</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="extracting-merging-and-adding">Extracting, merging and adding<a class="anchor" aria-label="anchor" href="#extracting-merging-and-adding"></a>
@@ -317,21 +307,21 @@ functions <code><a href="../reference/vcf_extract_indivs.html">vcf_extract_indiv
 this can be turned off using the “f_invar = FALSE” flag.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract individuals from VCF (keep all loci)</span></span>
-<span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4644"</span>, <span class="st">"CTGA_H4661"</span>, <span class="st">"CTGA_H4683"</span>, <span class="st">"CTGA_H4689"</span><span class="op">)</span></span>
+<span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4635"</span>, <span class="st">"CTGA_H4637"</span>, <span class="st">"CTGA_H4643"</span>, <span class="st">"CTGA_H4645"</span>, <span class="st">"CTGA_H4647"</span><span class="op">)</span></span>
 <span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">vcf_ingrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs1</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># extract groups of individuals from VCF (keep all loci)</span></span>
-<span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="st">"outgrp"</span><span class="op">)</span></span>
-<span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">vcf_ingrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups1</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="st">"caiman"</span><span class="op">)</span></span>
+<span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">groups1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">vcf_ingrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">groups1</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># merge vcf_outgrp into vcf_ingrp</span></span>
 <span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_merge.html">vcf_merge</a></span><span class="op">(</span><span class="va">vcf_ingrp</span>, <span class="va">vcf_outgrp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(FORMAT, id)`</span></span>
 <span></span>
 <span><span class="co"># add individuals from vcf_outgrp into vcf_ingrp (whitelist = TRUE is default)</span></span>
-<span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4683"</span>, <span class="st">"CTGA_H4689"</span><span class="op">)</span></span>
+<span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4637"</span>, <span class="st">"CTGA_H4643"</span>, <span class="st">"CTGA_H4645"</span><span class="op">)</span></span>
 <span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_add_indivs.html">vcf_add_indivs</a></span><span class="op">(</span><span class="va">vcf_ingrp</span>, <span class="va">vcf_outgrp</span>, <span class="va">indivs1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(FORMAT, id)`</span></span></code></pre></div>
 </div>
@@ -347,26 +337,26 @@ Therefore, a better strategy may be to extract the outgroup, filter the
 ingroup, add the outgroup, and remove any invariant SNPs.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract outgroup from VCF (keep all loci)</span></span>
-<span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="st">"outgrp"</span><span class="op">)</span></span>
-<span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="st">"caiman"</span><span class="op">)</span></span>
+<span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">groups1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># filter ingroup VCF for analyses then add outgroups</span></span>
-<span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups1</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.9</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">groups1</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.8</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_rank.html">vcf_filter_rank</a></span><span class="op">(</span><span class="fl">.5</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_maf.html">vcf_filter_maf</a></span><span class="op">(</span><span class="fl">.03</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_coverage.html">vcf_filter_coverage</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_oneSNP.html">vcf_filter_oneSNP</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missingness.html">vcf_filter_missingness</a></span><span class="op">(</span><span class="fl">.4</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.2</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missingness.html">vcf_filter_missingness</a></span><span class="op">(</span><span class="fl">.2</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.3</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_merge.html">vcf_merge</a></span><span class="op">(</span><span class="va">vcf_outgrp</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_invariant.html">vcf_filter_invariant</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; removed samples are: CTGA_H3327 </span></span>
-<span><span class="co">#&gt;  removed samples are: CTGA_H3600 </span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 60.45 %"</span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 11.45 %"</span></span>
-<span><span class="co">#&gt; removed samples are: CTGA_H3646 </span></span>
-<span><span class="co">#&gt; [1] "final % missing data in VCF is 6.38 %"</span></span>
+<span><span class="co">#&gt; removed samples are: CTGA_H4663 </span></span>
+<span><span class="co">#&gt;  removed samples are: CTGA_H4668 </span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 57.52 %"</span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is 3.33 %"</span></span>
+<span><span class="co">#&gt; removed samples are: CTGA_H4667 </span></span>
+<span><span class="co">#&gt; [1] "final % missing data in VCF is NaN %"</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(FORMAT, id)`</span></span></code></pre></div>
 </div>
 </div>
@@ -386,113 +376,61 @@ directory. Generally the <code><a href="../reference/vcf2genlight.html">vcf2genl
 within a script using functions of the <code>adegenet</code> package
 rather than importing the genlight object.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">project</span> <span class="op">&lt;-</span> <span class="st">"trigonatus"</span></span>
+<code class="sourceCode R"><span><span class="va">res_path</span> <span class="op">&lt;-</span> <span class="va">data_path</span></span>
+<span><span class="va">project</span> <span class="op">&lt;-</span> <span class="st">"trigonatus_"</span></span>
+<span><span class="va">postfix</span> <span class="op">&lt;-</span> <span class="st">"discosnp_sub"</span></span>
 <span></span>
 <span><span class="co">##########</span></span>
 <span><span class="co"># datasets for analyses with unlinked SNPs</span></span>
 <span><span class="va">vcf</span> <span class="op">&lt;-</span> <span class="va">vcf_oneSNP</span></span>
-<span></span>
-<span><span class="co"># read all sample names in vcf</span></span>
-<span><span class="va">vcf_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">vcf</span><span class="op">@</span><span class="va">gt</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">id</span>, id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># read sample to group assignment</span></span>
-<span><span class="va">strata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"strata"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">id</span>, id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># assign samples in vcf to groups</span></span>
-<span><span class="va">strata</span> <span class="op">&lt;-</span> <span class="va">vcf_names</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">strata</span><span class="op">)</span></span>
+<span><span class="co"># get groups and group info on samples in vcf</span></span>
+<span><span class="va">project_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_vcf_group_info.html">get_vcf_group_info</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">data_path</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(id)`</span></span>
-<span></span>
-<span><span class="co"># check if all samples in vcf are assigned to groups</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span> <span class="op">==</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"vcf has individuals not assigned to a group"</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">strata</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span> <span class="op">==</span> <span class="cn">TRUE</span>,<span class="op">]</span><span class="op">)</span></span>
-<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>  <span class="va">indiv_group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># read groups to be used; filter only those that are actually present</span></span>
-<span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"groups"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="va">.</span><span class="op">[</span><span class="va">.</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">##########</span></span>
 <span><span class="co"># export data formats</span></span>
 <span><span class="co"># migrate-n https://peterbeerli.com/migrate-html5/</span></span>
-<span><span class="fu"><a href="../reference/vcf2migrate.html">vcf2migrate</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'_migrateN.txt'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># migrate-n - new more compact heterozygosity format</span></span>
-<span><span class="fu"><a href="../reference/vcf2migrate.html">vcf2migrate</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'_migrateH.txt'</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"H"</span><span class="op">)</span></span>
-<span><span class="co"># arlequin </span></span>
-<span><span class="fu"><a href="../reference/vcf2arlequin.html">vcf2arlequin</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.arp'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># structure </span></span>
-<span><span class="fu"><a href="../reference/vcf2structure.html">vcf2structure</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.str'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># faststucture </span></span>
-<span><span class="fu"><a href="../reference/vcf2structure.html">vcf2structure</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.fstr'</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"F"</span><span class="op">)</span></span>
-<span><span class="co"># genepop </span></span>
-<span><span class="fu"><a href="../reference/vcf2genepop.html">vcf2genepop</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.gen'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># smartsnp </span></span>
-<span><span class="fu"><a href="../reference/vcf2smartsnp.html">vcf2smartsnp</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.smartsnp'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># eigenstrat </span></span>
-<span><span class="fu"><a href="../reference/vcf2eigenstrat.html">vcf2eigenstrat</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'_eigenstrat'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># bayescan </span></span>
-<span><span class="fu"><a href="../reference/vcf2bayescan.html">vcf2bayescan</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.bayescan'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># treemix </span></span>
-<span><span class="fu"><a href="../reference/vcf2treemix.html">vcf2treemix</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.treemix'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># apparent </span></span>
-<span><span class="fu"><a href="../reference/vcf2apparent.html">vcf2apparent</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.apparent'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># related </span></span>
-<span><span class="fu"><a href="../reference/vcf2related.html">vcf2related</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.related'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/vcf2migrate.html">vcf2migrate</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'_migrate.txt'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># arlequin http://cmpg.unibe.ch/software/arlequin35/</span></span>
+<span><span class="fu"><a href="../reference/vcf2arlequin.html">vcf2arlequin</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.arp'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># structure https://web.stanford.edu/group/pritchardlab/structure.html</span></span>
+<span><span class="fu"><a href="../reference/vcf2structure.html">vcf2structure</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.str'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># faststucture http://rajanil.github.io/fastStructure/</span></span>
+<span><span class="fu"><a href="../reference/vcf2structure.html">vcf2structure</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.fstr'</span><span class="op">)</span>, method <span class="op">=</span> <span class="st">"F"</span><span class="op">)</span></span>
+<span><span class="co"># genepop https://gitlab.mbb.univ-montp2.fr/francois/genepop</span></span>
+<span><span class="fu"><a href="../reference/vcf2genepop.html">vcf2genepop</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.gen'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># smartsnp https://github.com/ChristianHuber/smartsnp</span></span>
+<span><span class="fu"><a href="../reference/vcf2smartsnp.html">vcf2smartsnp</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.smartsnp'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># eigenstrat https://github.com/DReichLab/EIG/tree/master</span></span>
+<span><span class="fu"><a href="../reference/vcf2eigenstrat.html">vcf2eigenstrat</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'_eigenstrat'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># bayescan https://github.com/mfoll/BayeScan</span></span>
+<span><span class="fu"><a href="../reference/vcf2bayescan.html">vcf2bayescan</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.bayescan'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># treemix https://bitbucket.org/nygcresearch/treemix/wiki/Home</span></span>
+<span><span class="fu"><a href="../reference/vcf2treemix.html">vcf2treemix</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.treemix'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># apparent https://github.com/halelab/apparent/tree/master</span></span>
+<span><span class="fu"><a href="../reference/vcf2apparent.html">vcf2apparent</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.apparent'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># related https://github.com/timothyfrasier/related</span></span>
+<span><span class="fu"><a href="../reference/vcf2related.html">vcf2related</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.related'</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># dataframe with population membership in the last column</span></span>
-<span><span class="fu"><a href="../reference/vcf2df.html">vcf2df</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, <span class="cn">TRUE</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.df'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># snapp </span></span>
-<span><span class="fu"><a href="../reference/vcf2snapp.html">vcf2snapp</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'_snapp.nex'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># nexus - only SNPs, meant for SDVq analyses</span></span>
-<span><span class="fu"><a href="../reference/vcf2nexus.html">vcf2nexus</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'_sdvq.nex'</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># fasta </span></span>
-<span><span class="fu"><a href="../reference/vcf2fasta.html">vcf2fasta</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, <span class="cn">TRUE</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.fas'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/vcf2df.html">vcf2df</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.df'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># snapp https://www.beast2.org/snapp/</span></span>
+<span><span class="fu"><a href="../reference/vcf2snapp.html">vcf2snapp</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'_snapp.nex'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># nexus - only SNPs, meant for SDVq analyses https://www.asc.ohio-state.edu/kubatko.2/software/SVDquartets/</span></span>
+<span><span class="fu"><a href="../reference/vcf2nexus.html">vcf2nexus</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'_sdvq.nex'</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co"># fasta https://www.ncbi.nlm.nih.gov/genbank/fastaformat/</span></span>
+<span><span class="fu"><a href="../reference/vcf2fasta.html">vcf2fasta</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.fna'</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">##########</span></span>
 <span><span class="co"># datasets for analyses with linked SNPs</span></span>
 <span><span class="va">vcf</span> <span class="op">&lt;-</span> <span class="va">vcf_multiSNP</span></span>
-<span></span>
-<span><span class="co"># read all sample names in vcf</span></span>
-<span><span class="va">vcf_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">vcf</span><span class="op">@</span><span class="va">gt</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span>id <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">id</span>, id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># read sample to group assignment</span></span>
-<span><span class="va">strata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"strata"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://tibble.tidyverse.org/reference/as_tibble.html" class="external-link">as_tibble</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">id</span>, id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># assign samples in vcf to groups</span></span>
-<span><span class="va">strata</span> <span class="op">&lt;-</span> <span class="va">vcf_names</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">strata</span><span class="op">)</span></span>
+<span><span class="co"># get groups and group info on samples in vcf</span></span>
+<span><span class="va">project_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_vcf_group_info.html">get_vcf_group_info</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">data_path</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Joining with `by = join_by(id)`</span></span>
-<span></span>
-<span><span class="co"># check if all samples in vcf are assigned to groups</span></span>
-<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span> <span class="op">==</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="st">"vcf has individuals not assigned to a group"</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">strata</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span> <span class="op">==</span> <span class="cn">TRUE</span>,<span class="op">]</span><span class="op">)</span></span>
-<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
-<span>  <span class="va">indiv_group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="co"># read groups to be used; filter only those that are actually present</span></span>
-<span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="st">"groups"</span><span class="op">)</span>, header <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="va">.</span><span class="op">[</span><span class="va">.</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">strata</span><span class="op">$</span><span class="va">pop</span><span class="op">)</span><span class="op">]</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">##########</span></span>
 <span><span class="co"># export data formats</span></span>
 <span><span class="co"># fineRadStructure - expects VCF of linked SNPs</span></span>
-<span><span class="fu"><a href="../reference/vcf2fineRadStructure.html">vcf2fineRadStructure</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indiv_group</span>, <span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">path</span>, <span class="va">project</span>, <span class="st">'.finerad'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/vcf2fineRadStructure.html">vcf2fineRadStructure</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">groups</span>, out_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">res_path</span>, <span class="va">project</span>, <span class="va">postfix</span>, <span class="st">'.finerad'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
