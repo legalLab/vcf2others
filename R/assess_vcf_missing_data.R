@@ -56,8 +56,6 @@ assess_vcf_missing_data <- function(vcf, data_path, res_path, project, postfix, 
     dplyr::pull(id)
   p <- ggplot2::ggplot(df, ggplot2::aes(x=factor(id, level=ordr), y=p_miss, fill=group)) +
     ggplot2::geom_bar(stat = "identity") +
-    ggplot2::scale_fill_manual(values = colorRampPalette(
-      RColorBrewer::brewer.pal(8, "Dark2"))(nrow(df))) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = .5, hjust = 1, size = ggplot2::rel(.8))) +
     ggplot2::labs(x = "sample", y = "% missing", title = bquote(paste(italic(.(species)), " ", "(", .(postfix), ")")))
 
