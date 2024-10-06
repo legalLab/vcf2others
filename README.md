@@ -102,7 +102,6 @@ The function `vcf_stats()` is used to generate a table with basic stats for each
 # get a table of basic sample stats
 
 vcf_stats(vcf, res_path, project)
-#> Joining with `by = join_by(id)`
 ```
 
 ## Filtering, subsetting, merging and otherwise wrangling VCF files
