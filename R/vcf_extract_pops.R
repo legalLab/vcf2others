@@ -23,11 +23,11 @@ vcf_extract_pops <- function(vcf, ind_pop, keep_pop, whitelist = TRUE, f_invar =
   ids <- ids+1
   if (whitelist == TRUE){
     vcf <- vcf[, c(1,ids)] %>%
-      {if (f_invar == TRUE) vcf_filter_invariant(.) else .}
+      {if (f_invar == TRUE & length(ids) > 1) vcf_filter_invariant(.) else .}
   }
   else {
     vcf <- vcf[, -c(ids)] %>%
-      {if (f_invar == TRUE) vcf_filter_invariant(.) else .}
+      {if (f_invar == TRUE & length(ids) > 1) vcf_filter_invariant(.) else .}
   }
 
   return(vcf)
