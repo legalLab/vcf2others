@@ -173,6 +173,19 @@ information. Samples are ordered and colored by group assignment.</p>
 <span><span class="co">#&gt; Joining with `by = join_by(id)`</span></span></code></pre></div>
 </div>
 <div class="section level3">
+<h3 id="basic-stats-for-individuals-in-vcf">Basic stats for individuals in VCF<a class="anchor" aria-label="anchor" href="#basic-stats-for-individuals-in-vcf"></a>
+</h3>
+<p>The function <code><a href="../reference/vcf_stats.html">vcf_stats()</a></code> is used to generate a table
+with basic stats for each sample in the VCF. These stats include average
+read depth, heterozygosity, number of heterozygotes, homozygotes,
+reference homozygotes and alternate homogygotes, percent missing SNPs,
+total missing SNPs and total SNPs.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># get a table of basic sample stats</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/vcf_stats.html">vcf_stats</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">res_path</span>, <span class="va">project</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
 <h3 id="filtering-subsetting-merging-and-otherwise-wrangling-vcf-files">Filtering, subsetting, merging and otherwise wrangling VCF
 files<a class="anchor" aria-label="anchor" href="#filtering-subsetting-merging-and-otherwise-wrangling-vcf-files"></a>
 </h3>
@@ -192,7 +205,7 @@ group/population), or a random subset of loci, respectively. Subsetting
 individuals and groups can be done either as a whitelist (keep the
 listed individuals/groups) or blacklist (remove the listed
 individuals/groups).</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># subset VCF by individuals (default whitelist = TRUE, remove invariants = TRUE)</span></span>
 <span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4635"</span>, <span class="st">"CTGA_H4667"</span><span class="op">)</span></span>
 <span><span class="va">vcf1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs1</span><span class="op">)</span></span>
@@ -229,7 +242,7 @@ filter a VCF to remove linked SNPs (retain only unliked SNPs) or retain
 only linked SNPs, respectively. In general, all analyses assume that
 SNPs are unlinked, however, some analyses such as FineRadStructure work
 with linked SNPs.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># filter VCF for analyses (unlinked SNPs)</span></span>
 <span><span class="va">vcf_oneSNP</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs</span>, whitelist <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs</a></span><span class="op">(</span><span class="fl">.8</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -285,7 +298,7 @@ functions <code><a href="../reference/vcf_extract_indivs.html">vcf_extract_indiv
 <code><a href="../reference/vcf_filter_missing_indivs.html">vcf_filter_missing_indivs()</a></code> and
 <code><a href="../reference/vcf_filter_coverage.html">vcf_filter_coverage()</a></code> by default filter invariants, but
 this can be turned off using the “f_invar = FALSE” flag.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract individuals from VCF (keep all loci)</span></span>
 <span><span class="va">indivs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTGA_H4635"</span>, <span class="st">"CTGA_H4637"</span>, <span class="st">"CTGA_H4643"</span>, <span class="st">"CTGA_H4645"</span>, <span class="st">"CTGA_H4647"</span><span class="op">)</span></span>
 <span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_indivs.html">vcf_extract_indivs</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">indivs1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -315,7 +328,7 @@ taxa when <code><a href="../reference/vcf_filter_invariant.html">vcf_filter_inva
 to remove individuals with % missing data above some threshold.
 Therefore, a better strategy may be to extract the outgroup, filter the
 ingroup, add the outgroup, and remove any invariant SNPs.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># extract outgroup from VCF (keep all loci)</span></span>
 <span><span class="va">groups1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="st">"caiman"</span><span class="op">)</span></span>
 <span><span class="va">vcf_outgrp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/vcf_extract_pops.html">vcf_extract_pops</a></span><span class="op">(</span><span class="va">vcf</span>, <span class="va">project_info</span><span class="op">$</span><span class="va">indiv_group</span>, <span class="va">groups1</span>, f_invar <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
@@ -355,7 +368,7 @@ optionally can also export/write a file of this format to the working
 directory. Generally the <code><a href="../reference/vcf2genlight.html">vcf2genlight()</a></code> function is called
 within a script using functions of the <code>adegenet</code> package
 rather than importing the genlight object.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_path</span> <span class="op">&lt;-</span> <span class="va">data_path</span></span>
 <span><span class="va">project</span> <span class="op">&lt;-</span> <span class="st">"trigonatus_"</span></span>
 <span><span class="va">postfix</span> <span class="op">&lt;-</span> <span class="st">"discosnp_sub"</span></span>
