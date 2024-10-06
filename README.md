@@ -94,6 +94,17 @@ assess_vcf_missing_data(vcf, data_path, res_path, project, postfix, fltr, specie
 #> Joining with `by = join_by(id)`
 ```
 
+## Basic stats for individuals in VCF
+
+The function `vcf_stats()` is used to generate a table with basic stats for each sample in the VCF. These stats include average read depth, heterozygosity, number of heterozygotes, homozygotes, reference homozygotes and alternate homogygotes, percent missing SNPs, total missing SNPs and total SNPs.
+
+``` r
+# get a table of basic sample stats
+
+vcf_stats(vcf, res_path, project)
+#> Joining with `by = join_by(id)`
+```
+
 ## Filtering, subsetting, merging and otherwise wrangling VCF files
 
 All functions can be used directly on a VCF, but many of them are called
