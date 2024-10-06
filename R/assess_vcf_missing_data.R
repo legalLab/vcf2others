@@ -63,4 +63,7 @@ assess_vcf_missing_data <- function(vcf, data_path, res_path, project, postfix, 
   ggplot2::ggsave(plot=p, filename=paste0(res_path, project, postfix, fltr, "_missingness.pdf"), width=6, height=4, bg="transparent", limitsize=FALSE)
   ggplot2::ggsave(plot=p, filename=paste0(res_path, project, postfix, fltr, "_missingness.svg"), device="svg", width=6, height=4, bg="transparent", limitsize=FALSE)
   ggplot2::ggsave(plot=p, filename=paste0(res_path, project, postfix, fltr, "_missingness.png"), device="png", width=6, height=4, bg="transparent", limitsize=FALSE)
+  
+  # invisible return of the first argument so function can be used in a pipe
+  invisible(vcf)
 }
