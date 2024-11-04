@@ -26,12 +26,12 @@ get_vcf_group_info <- function(vcf, data_path, strt = "strata", grps = "groups")
   vcf_names <- colnames(vcf@gt)[-1] %>%
     tibble::as_tibble() %>%
     dplyr::rename(id = 1) %>%
-    dplyr::mutate(id, id = as.character(id))
+    dplyr::mutate(id = as.character(id))
 
   # read sample to group assignment
   strata <- read.table(paste0(data_path, strt), header = TRUE) %>%
     tibble::as_tibble() %>%
-    dplyr::mutate(id, id = as.character(id))
+    dplyr::mutate(id = as.character(id))
 
   # assign samples in vcf to groups
   strata <- vcf_names %>%
