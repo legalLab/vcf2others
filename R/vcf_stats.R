@@ -47,7 +47,7 @@ vcf_stats <- function(vcf, res_path, project) {
                        'homozygotes_ref', 'homozygotes_alt', 'missing_p', 'missing', 
                       'non_missing', 'total')
   
-  write.table(stats, file = paste0(res_path, project, "stats.csv"), row.names = FALSE, quote = FALSE, sep = ",")
+  write.table(stats, file = paste0(res_path, project, "_stats.csv"), row.names = FALSE, quote = FALSE, sep = ",")
   
   # invisible return of the first argument so function can be used in a pipe
   invisible(vcf)
