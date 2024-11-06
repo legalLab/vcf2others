@@ -19,8 +19,9 @@ vcf_sub_loci <- function(vcf, n_loci = 1000) {
   gt <- vcfR::extract.gt(vcf, convertNA = T)
   # get number of snps in vcf
   n_snps <- nrow(gt)
-
-  x <- sample(1:n_snps, n_loci)
+  
+  # subsample and keep the same order of snps
+  x <- sort(sample(1:n_snps, n_loci))
 
   vcf <- vcf[x,]
 
