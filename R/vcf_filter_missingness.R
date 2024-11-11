@@ -16,17 +16,28 @@
 #'
 
 vcf_filter_missingness <- function(vcf, p_miss) {
-  gt <- vcfR::extract.gt(vcf, convertNA = T)
+  gt <- vcfR::extract.gt(vcf, convertNA = TRUE) %>%
+    t() %>%
+    tibble::as_tibble()
   # get number of samples in vcf
   n_samples <- ncol(gt)
 
-  # keep only those loci with < % missing data
-  vcf <- vcf[rowSums(is.na(gt)) < floor(n_samples*p_miss),]
+  rows_to_keep <- arrow::as_arrow_table(gt) %>%
+    dplyr::summarise(across(everything(), ~ sum(is.na(.)) / n_samples < p_miss)) %>%
+    dplyr::collect() %>%
+    unlist()
+  vcf1 <- vcf[rows_to_keep, ]
 
   # print VCF matrix completeness
   vcf1 <- vcf_filter_oneSNP(vcf)
-  gt <- vcfR::extract.gt(vcf1, convertNA = T)
-  p_missing <- sum(is.na(gt)) / length(gt)
+  gt <- vcfR::extract.gt(vcf1, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  p_missing <- arrow::as_arrow_table(gt) %>%
+    dplyr::summarise(across(everything(), ~ sum(is.na(.)))) %>%
+    dplyr::collect() %>%
+    unlist() %>%
+    {sum(.) / (ncol(gt) * nrow(gt))}
+
   print(paste("final % missing data in VCF is", round(p_missing*100, 2), "%", sep = " "))
 
   return(vcf)

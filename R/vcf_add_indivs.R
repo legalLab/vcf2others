@@ -30,10 +30,10 @@ vcf_add_indivs <- function(vcf, vcf1, indiv, whitelist = TRUE) {
   }
 
   vcf_gt <- vcf@gt %>%
-    as.data.frame() %>%
+    tibble::as_tibble() %>%
     dplyr::mutate(id = vcfR::getID(vcf))
   vcf1_gt <- vcf1@gt %>%
-    as.data.frame() %>%
+    tibble::as_tibble() %>%
     dplyr::mutate(id = vcfR::getID(vcf1))
 
   ids <- which(vcf1_names %in% indiv)

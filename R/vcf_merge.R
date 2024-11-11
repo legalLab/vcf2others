@@ -19,10 +19,10 @@
 
 vcf_merge <- function(vcf, vcf1) {
   vcf_gt <- vcf@gt %>%
-    as.data.frame() %>%
+    tibble::as_tibble() %>%
     dplyr::mutate(id = vcfR::getID(vcf))
   vcf1_gt <- vcf1@gt %>%
-    as.data.frame() %>%
+    tibble::as_tibble() %>%
     dplyr::mutate(id = vcfR::getID(vcf1))
 
   vcf_merged_gt <-dplyr::left_join(vcf_gt, vcf1_gt) %>%

@@ -33,25 +33,32 @@ vcf2snapp <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = "sn
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums(is.na(gt)), ]
   }
   vcf2 <- vcf_extract_pops(vcf, ind_pop, keep_pop)
-  gt <- vcfR::extract.gt(vcf2, return.alleles = F, convertNA = T)
-  gt[is.na(gt)] <- "?"
-  gt[gt == "0/0" | gt == "0|0"] <- "0"
-  gt[gt == "1/1" | gt == "1|1"] <- "1"
-  gt[gt == "0/1" | gt == "0|1" | gt == "1/0" | gt == "1|0"] <- "2"
-  gt <- t(gt)
+  gt <- vcfR::extract.gt(vcf2, return.alleles = FALSE, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  gt_table <- arrow::as_arrow_table(gt) %>%
+    dplyr::mutate(across(everything(), ~ dplyr::case_when(
+      is.na(.) ~ "?",
+      . == "0/0" | . == "0|0" ~ "0",
+      . == "1/1" | . == "1|1" ~ "1",
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "2",
+      TRUE ~ .
+    ))) %>%
+    dplyr::collect() %>%
+    t() %>%
+    as.matrix()
 
-  ape::write.nexus.data(gt, out_file, format = "standard", interleaved = FALSE)
+  ape::write.nexus.data(gt_table, out_file, format = "standard", interleaved = FALSE)
 
   # fix symbols in nexus so that snapp.xml file is correctly formated
   fix_symbols <- paste(c("sed -i 's/symbols=\"0123456789\"/symbols=\"012\"/'", out_file), collapse = " ")
   system(fix_symbols)
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

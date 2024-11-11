@@ -33,10 +33,10 @@ vcf2structure <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file =
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums(is.na(gt)), ]
   }
   vcf_list <- lapply(keep_pop, function(x) {
@@ -46,58 +46,62 @@ vcf2structure <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file =
   pop_list <- vector(mode = "list", length = length(vcf_list))
   names(pop_list) <- names(vcf_list)
 
-  for (i in 1:length(vcf_list)) {
-    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = F, convertNA = T) #convertNA not working here
-    gt[is.na(gt)] <- "?/?"
-    allele1 <- apply(gt, MARGIN = 2, function(x) {
-      substr(x, 1, 1)
-    })
-    rownames(allele1) <- NULL
-    allele1 <- t(allele1)
-    allele1[allele1 == "?"] <- "-9"
-    rownames(allele1) <- paste(rownames(allele1), "_1",
-                               sep = "")
-    allele2 <- apply(gt, MARGIN = 2, function(x) {
-      substr(x, 3, 3)
-    })
-    rownames(allele2) <- NULL
-    allele2 <- t(allele2)
-    allele2[allele2 == "?"] <- "-9"
-    rownames(allele2) <- paste(rownames(allele2), "_2",
-                               sep = "")
+  # process genotype data
+  for (i in seq_along(vcf_list)) {
+    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = FALSE, convertNA = TRUE) %>%
+      tibble::as_tibble()
+
+    # split alleles
+    allele1 <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ substr(., 1, 1))) %>%
+      dplyr::mutate(across(everything(), ~ if_else(is.na(.), "-9", .))) %>%
+      dplyr::collect() %>%
+      t() %>%
+      as.data.frame()
+    rownames(allele1) <- paste0(rownames(allele1), "_1")
+
+    allele2 <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ substr(., 3, 3))) %>%
+      dplyr::mutate(across(everything(), ~ if_else(is.na(.), "-9", .))) %>%
+      dplyr::collect() %>%
+      t() %>%
+      as.data.frame()
+    rownames(allele2) <- paste0(rownames(allele2), "_2")
+
     pop_list[[i]][[1]] <- allele1
     pop_list[[i]][[2]] <- allele2
   }
 
+  # remove existing output file
   if (file.exists(out_file)) {
     file.remove(out_file)
   }
 
-  # default output Structure, alternate output FastStructure
+  # write to output file
   if (method == "S") {
-    for (i in 1:length(pop_list)) {
+    for (i in seq_along(pop_list)) {
       for (j in 1:nrow(pop_list[[i]][[1]])) {
         utils::write.table(t(c(names(pop_list[[i]][[1]][j, 1]), i, pop_list[[i]][[1]][j, ])), file = out_file,
-                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE,
-                           col.names = FALSE)
+                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
         utils::write.table(t(c(names(pop_list[[i]][[2]][j, 1]), i, pop_list[[i]][[2]][j, ])), file = out_file,
-                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE,
-                           col.names = FALSE)
-      }
-    }
-  } else if (method == "F") {
-    fill <- rep(c(0), 4)
-    for (i in 1:length(pop_list)) {
-      for (j in 1:nrow(pop_list[[i]][[1]])) {
-        utils::write.table(t(c(names(pop_list[[i]][[1]][j, 1]), i, fill, pop_list[[i]][[1]][j, ])), file = out_file,
-                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE,
-                           col.names = FALSE)
-        utils::write.table(t(c(names(pop_list[[i]][[2]][j, 1]), i, fill, pop_list[[i]][[2]][j, ])), file = out_file,
-                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE,
-                           col.names = FALSE)
+                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
       }
     }
   }
+  else if (method == "F") {
+    fill <- rep(0, 4)
+    for (i in seq_along(pop_list)) {
+      for (j in 1:nrow(pop_list[[i]][[1]])) {
+        utils::write.table(t(c(names(pop_list[[i]][[1]][j, 1]), i, fill, pop_list[[i]][[1]][j, ])), file = out_file,
+                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
+        utils::write.table(t(c(names(pop_list[[i]][[2]][j, 1]), i, fill, pop_list[[i]][[2]][j, ])), file = out_file,
+                           append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
+      }
+    }
+  }
+  else {
+    stop("You should never get here!\nMethods are S or F.")
+  }
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

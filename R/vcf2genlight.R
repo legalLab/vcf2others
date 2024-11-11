@@ -33,24 +33,31 @@ vcf2genlight <- function (vcf, ind_pop, keep_pop, ploidy = 2, inc_missing = TRUE
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums(is.na(gt)), ]
   }
   vcf2 <- vcf_extract_pops(vcf, ind_pop, keep_pop)
   if (any(is.na(vcfR::getID(vcf2)))) {
     vcf2 <- vcfR::addID(vcf2)
   }
-  gt <- vcfR::extract.gt(vcf2, return.alleles = F, convertNA = T)
-  gt[is.na(gt)] <- "NA"
-  gt[gt == "0/0" | gt == "0|0"] <- "0"
-  gt[gt == "1/1" | gt == "1|1"] <- "2"
-  gt[gt == "0/1" | gt == "0|1" | gt == "1/0" | gt == "1|0"] <- "1"
+  gt <- vcfR::extract.gt(vcf2, return.alleles = FALSE, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  gt_table <- arrow::as_arrow_table(gt) %>%
+    dplyr::mutate(across(everything(), ~ dplyr::case_when(
+      . == "0/0" | . == "0|0" ~ "0",
+      . == "1/1" | . == "1|1" ~ "2",
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "1",
+      TRUE ~ .
+    ))) %>%
+    dplyr::collect() %>%
+    t() %>%
+    as.matrix()
 
   # create genelight object
-  x <- suppressWarnings(new("genlight", t(gt)))
+  x <- suppressWarnings(new("genlight", gt_table))
   adegenet::chromosome(x) <- vcfR::getCHROM(vcf2)
   adegenet::position(x) <- vcfR::getPOS(vcf2)
   adegenet::pop(x) <- ind_pop[ind_pop %in% keep_pop]

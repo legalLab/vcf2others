@@ -21,18 +21,18 @@
 #'
 
 vcf_filter_multiSNP <- function(vcf, minS = 2, maxS = 5) {
-  # read all loci names in vcf
-  chrom <- vcfR::getCHROM(vcf)
-  id <-  vcfR::getID(vcf)
-  chrom_id <- cbind(chrom, id) %>%
-    dplyr::as_tibble()
+  chrom_id_table <- arrow::Table$create(
+    chrom = vcfR::getCHROM(vcf),
+    id = vcfR::getID(vcf)
+  )
 
-  keeper <- chrom_id %>%
-    dplyr::count(chrom) %>%
+  keeper <- chrom_id_table %>%
+    dplyr::group_by(chrom) %>%
+    dplyr::summarise(n = dplyr::n()) %>%
     dplyr::filter(n >= minS & n <= maxS) %>%
-    dplyr::select(-n) %>%
-    as.matrix() %>%
-    as.character()
+    dplyr::select(chrom) %>%
+    dplyr::collect() %>%
+    dplyr::pull(chrom)
 
   # keep only those loci with between minS and maxS SNPs
   vcf <- vcf[chrom %in% keeper, ]

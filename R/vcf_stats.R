@@ -21,33 +21,60 @@
 #'
 
 vcf_stats <- function(vcf, res_path, project) {
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
-  dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE)
-  gt <- vcfR::extract.gt(vcf, return.alleles = F, convertNA = T)
+  dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE) %>%
+    tibble::as_tibble()
+  dp_table <- arrow::as_arrow_table(dp)
+  gt <- vcfR::extract.gt(vcf, return.alleles = FALSE, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  gt_table <- arrow::as_arrow_table(gt) %>%
+    dplyr::mutate(across(everything(), ~ dplyr::case_when(
+      . == "0/0" | . == "0|0" ~ "0",
+      . == "1/1" | . == "1|1" ~ "1",
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "2",
+      TRUE ~ .
+    )))
   samples <- colnames(gt)
-  gt[is.na(gt)] <- "NA"
-  gt[gt == "0/0" | gt == "0|0"] <- "0"
-  gt[gt == "1/1" | gt == "1|1"] <- "1"
-  gt[gt == "0/1" | gt == "0|1" | gt == "1/0" | gt == "1|0"] <- "2"
 
-  homo_ref <- apply(gt, MARGIN = 2, function(x){sum(x == 0 , na.rm = TRUE)})
-  homo_alt <- apply(gt, MARGIN = 2, function(x){sum(x == 1, na.rm = TRUE)})
-  hetero <- apply(gt, MARGIN = 2, function(x){sum(x == 2, na.rm = TRUE)})
-  miss <- apply(gt, MARGIN = 2, function(x){sum(x == "NA")})
-  total <- homo_ref+homo_alt+hetero
-  loc_n <- apply(gt, MARGIN = 2, function(x){length(x)})
-  depth <- apply(dp, MARGIN = 2, function(x){mean(x)})
+  homo_ref <- gt_table %>%
+    dplyr::summarise(across(everything(), ~ sum(. == 0, na.rm = TRUE))) %>%
+    dplyr::collect() %>%
+    unlist()
+  homo_alt <- gt_table %>%
+    dplyr::summarise(across(everything(), ~ sum(. == 1, na.rm = TRUE))) %>%
+    dplyr::collect() %>%
+    unlist()
+  hetero <- gt_table %>%
+    dplyr::summarise(across(everything(), ~ sum(. == 2, na.rm = TRUE))) %>%
+    dplyr::collect() %>%
+    unlist()
+  miss <- gt_table %>%
+    dplyr::summarise(across(everything(), ~ sum(is.na(.)))) %>%
+    dplyr::collect() %>%
+    unlist()
+  total <- homo_ref + homo_alt + hetero
+  loc_n <- nrow(gt)
+  depth <- dp_table %>%
+    dplyr::summarise(across(everything(), ~ mean(., na.rm = TRUE))) %>%
+    dplyr::collect() %>%
+    unlist()
 
-  stats <- rbind(samples, depth, hetero/total, hetero, (homo_ref+homo_alt),
-                 homo_ref, homo_alt, miss/loc_n, miss, total, loc_n) %>%
-    t() %>%
-    as.data.frame()
-  colnames(stats) <- c('id', 'read_depth', 'heterozygosity', 'heterozygotes', 'homozygotes',
-                       'homozygotes_ref', 'homozygotes_alt', 'missing_p', 'missing',
-                      'non_missing', 'total')
+  stats <- tibble::tibble(
+    id = samples,
+    read_depth = depth,
+    heterozygosity = hetero / total,
+    heterozygotes = hetero,
+    homozygotes = homo_ref + homo_alt,
+    homozygotes_ref = homo_ref,
+    homozygotes_alt = homo_alt,
+    missing_p = miss / loc_n,
+    missing = miss,
+    non_missing = total,
+    total = loc_n
+  )
 
-  write.table(stats, file = paste0(res_path, project, "_stats.csv"), row.names = FALSE, quote = FALSE, sep = ",")
+  arrow::write_csv_arrow(stats, paste0(res_path, project, "_stats.csv"))
 
   # invisible return of the first argument so function can be used in a pipe
   invisible(vcf)

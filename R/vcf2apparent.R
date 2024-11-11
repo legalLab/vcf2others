@@ -32,31 +32,39 @@ vcf2apparent <- function (vcf, ind_pop, keep_pop, key = "All", inc_missing = TRU
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums(is.na(gt)), ]
   }
   vcf2 <- vcf_extract_pops(vcf, ind_pop, keep_pop)
-  gt <- vcfR::extract.gt(vcf2, return.alleles = T, convertNA = T)
-  gt[gt == "."] <- "-/-"
-  gt[gt == "A/A" | gt == "A|A"] <- "A/A"
-  gt[gt == "A/C" | gt == "C/A" | gt == "A|C" | gt == "C|A"] <- "A/C"
-  gt[gt == "A/G" | gt == "G/A" | gt == "A|G" | gt == "G|A"] <- "A/G"
-  gt[gt == "A/T" | gt == "T/A" | gt == "A|T" | gt == "T|A"] <- "A/T"
-  gt[gt == "C/C" | gt == "C|C"] <- "C/C"
-  gt[gt == "C/G" | gt == "G/C" | gt == "C|G" | gt == "G|C"] <- "C/G"
-  gt[gt == "C/T" | gt == "T/C" | gt == "C|T" | gt == "T|C"] <- "C/T"
-  gt[gt == "G/G" | gt == "G|G"] <- "G/G"
-  gt[gt == "G/T" | gt == "T/G" | gt == "G|T" | gt == "T|G"] <- "G/T"
-  gt[gt == "T/T" | gt == "T|T"] <- "T/T"
-  gt <- t(gt)
-  gt <- cbind(key, gt)
+  gt <- vcfR::extract.gt(vcf2, return.alleles = TRUE, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  gt_table <- arrow::as_arrow_table(gt) %>%
+    dplyr::mutate(across(everything(), ~ dplyr::case_when(
+      . == "." ~ "-/-",
+      . == "A/A" | . == "A|A" ~ "A/A",
+      . == "A/C" | . == "C/A" | . == "A|C" | . == "C|A" ~ "A/C",
+      . == "A/G" | . == "G/A" | . == "A|G" | . == "G|A" ~ "A/G",
+      . == "A/T" | . == "T/A" | . == "A|T" | . == "T|A" ~ "A/T",
+      . == "C/C" | . == "C|C" ~ "C/C",
+      . == "C/G" | . == "G/C" | . == "C|G" | . == "G|C" ~ "C/G",
+      . == "C/T" | . == "T/C" | . == "C|T" | . == "T|C" ~ "C/T",
+      . == "G/G" | . == "G|G" ~ "G/G",
+      . == "G/T" | . == "T/G" | . == "G|T" | . == "T|G" ~ "G/T",
+      . == "T/T" | . == "T|T" ~ "T/T",
+      TRUE ~ .
+    ))) %>%
+    dplyr::collect() %>%
+    t() %>%
+    as.data.frame() %>%
+    dplyr::mutate(key = key) %>%
+    dplyr::relocate(key, .before = everything())
 
-  #suppressWarnings(utils::write.table(gt[0,], file = out_file, quote = FALSE, sep = "\t", col.names = TRUE, append = TRUE))
+  #suppressWarnings(utils::write.table(gt_table, file = out_file, quote = FALSE, sep = "\t", col.names = TRUE, append = TRUE))
 
-  utils::write.table(gt, file = out_file, quote = FALSE, sep = "\t", col.names = FALSE, append = FALSE)
+  utils::write.table(gt_table, file = out_file, quote = FALSE, sep = "\t", col.names = FALSE, append = FALSE)
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

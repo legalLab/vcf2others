@@ -42,35 +42,50 @@ vcf2df <- function (vcf, ind_pop, keep_pop, alleles = TRUE, inc_missing = TRUE,
   }
   vcf2 <- vcf_extract_pops(vcf, ind_pop, keep_pop)
   if (alleles == TRUE) {
-    gt <- vcfR::extract.gt(vcf2, return.alleles = T, convertNA = T)
-    gt[gt == "."] <- "NA"
-    gt[gt == "A/A" | gt == "A|A"] <- "A"
-    gt[gt == "A/C" | gt == "C/A" | gt == "A|C" | gt == "C|A"] <- "M"
-    gt[gt == "A/G" | gt == "G/A" | gt == "A|G" | gt == "G|A"] <- "R"
-    gt[gt == "A/T" | gt == "T/A" | gt == "A|T" | gt == "T|A"] <- "W"
-    gt[gt == "C/C" | gt == "C|C"] <- "C"
-    gt[gt == "C/G" | gt == "G/C" | gt == "C|G" | gt == "G|C"] <- "S"
-    gt[gt == "C/T" | gt == "T/C" | gt == "C|T" | gt == "T|C"] <- "Y"
-    gt[gt == "G/G" | gt == "G|G"] <- "G"
-    gt[gt == "G/T" | gt == "T/G" | gt == "G|T" | gt == "T|G"] <- "K"
-    gt[gt == "T/T" | gt == "T|T"] <- "T"
-  } else {
-    gt <- vcfR::extract.gt(vcf2, return.alleles = F, convertNA = T)
-    gt[is.na(gt)] <- "NA"
-    gt[gt == "0/0" | gt == "0|0"] <- "0"
-    gt[gt == "1/1" | gt == "1|1"] <- "2"
-    gt[gt == "0/1" | gt == "0|1" | gt == "1/0" | gt == "1|0"] <- "1"
+    gt <- vcfR::extract.gt(vcf2, return.alleles = TRUE, convertNA = TRUE) %>%
+      tibble::as_tibble()
+    gt_table <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ dplyr::case_when(
+        . == "." ~ "?",
+        . == "A/A" | . == "A|A" ~ "A",
+        . == "A/C" | . == "C/A" | . == "A|C" | . == "C|A" ~ "M",
+        . == "A/G" | . == "G/A" | . == "A|G" | . == "G|A" ~ "R",
+        . == "A/T" | . == "T/A" | . == "A|T" | . == "T|A" ~ "W",
+        . == "C/C" | . == "C|C" ~ "C",
+        . == "C/G" | . == "G/C" | . == "C|G" | . == "G|C" ~ "S",
+        . == "C/T" | . == "T/C" | . == "C|T" | . == "T|C" ~ "Y",
+        . == "G/G" | . == "G|G" ~ "G",
+        . == "G/T" | . == "T/G" | . == "G|T" | . == "T|G" ~ "K",
+        . == "T/T" | . == "T|T" ~ "T",
+        TRUE ~ .
+      ))) %>%
+      dplyr::collect() %>%
+      t() %>%
+      as.data.frame()
+  }
+  else {
+    gt <- vcfR::extract.gt(vcf2, return.alleles = FALSE, convertNA = TRUE) %>%
+      tibble::as_tibble()
+    gt_table <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ dplyr::case_when(
+        is.na(.) ~ "?",
+        . == "0/0" | . == "0|0" ~ "0",
+        . == "1/1" | . == "1|1" ~ "2",
+        . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "1",
+        TRUE ~ .
+      ))) %>%
+      dplyr::collect() %>%
+      t() %>%
+      as.data.frame()
   }
 
-  df <- t(gt)
+  utils::write.table(gt_table, file = out_file, quote = FALSE, sep = "\t", col.names = TRUE, row.names = TRUE)
 
-  utils::write.table(df, file = out_file, quote = FALSE, sep = "\t", col.names = TRUE, row.names = TRUE)
-
-  df <- cbind(t(gt), as.character(ind_pop))
+  df <- cbind(gt_table, as.character(ind_pop))
   colnames(df)[ncol(df)] <- "group"
   df <- df[,-(2:(ncol(df)-1))]
 
-  utils::write.table(df, file = paste(out_file, 'groups', sep = '.'), quote = FALSE, sep = "\t", col.names = TRUE, row.names = TRUE)
+  utils::write.table(df, file = paste(out_file, "groups", sep = "."), quote = FALSE, sep = "\t", col.names = TRUE, row.names = TRUE)
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

@@ -29,26 +29,29 @@
 
 assess_vcf_missing_data <- function(vcf, data_path, res_path, project, postfix, fltr, species, strt = "strata") {
   # read sample to group assignment
-  strata <- read.table(paste0(data_path, strt), header = TRUE) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(id, id = as.character(id))
+  strata <- arrow::read_csv_arrow(paste0(data_path, strt)) %>%
+    dplyr::mutate(id = as.character(id))
 
   # extract genotypes
-  gt <- vcfR::extract.gt(vcf, element = "GT", as.numeric = TRUE)
+  gt <- vcfR::extract.gt(vcf, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  # convert gt to an Arrow Table
+  gt_table <- arrow::as_arrow_table(gt)
 
   # get missing number per individual and % missing
-  n_miss <- apply(gt, MARGIN = 2, function(x){sum(is.na(x))})
+  n_miss <- gt_table %>%
+    dplyr::summarise(across(everything(), ~ sum(is.na(.)))) %>%
+    dplyr::collect() %>%
+    unlist()
   p_miss <- n_miss/nrow(gt)
 
   # organize as dataframe and save
-  df <- cbind(p_miss, n_miss) %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(n_total = nrow(gt)) %>%
-    dplyr::mutate(id = colnames(gt)) %>%
-    dplyr::left_join(strata) %>%
-    dplyr::relocate(c(id, group = pop))
+  df <- tibble::tibble(p_miss = p_miss, n_miss = n_miss, n_total = nrow(gt), id = colnames(gt)) %>%
+    dplyr::left_join(strata, by = "id") %>%
+    dplyr::rename(group = pop) %>%
+    dplyr::relocate(id, group, .before = everything())
 
-  write.table(df, file = paste0(res_path, project, postfix, fltr, "_missingness"), row.names = FALSE, quote = FALSE)
+  arrow::write_csv_arrow(df, file = paste0(res_path, project, postfix, fltr, "_missingness"), row.names = FALSE, quote = FALSE)
 
   # plot missingness
   ordr <- df %>%
@@ -63,7 +66,7 @@ assess_vcf_missing_data <- function(vcf, data_path, res_path, project, postfix, 
   ggplot2::ggsave(plot=p, filename=paste0(res_path, project, postfix, fltr, "_missingness.pdf"), width=6, height=4, bg="transparent", limitsize=FALSE)
   ggplot2::ggsave(plot=p, filename=paste0(res_path, project, postfix, fltr, "_missingness.svg"), device="svg", width=6, height=4, bg="transparent", limitsize=FALSE)
   ggplot2::ggsave(plot=p, filename=paste0(res_path, project, postfix, fltr, "_missingness.png"), device="png", width=6, height=4, bg="transparent", limitsize=FALSE)
-  
+
   # invisible return of the first argument so function can be used in a pipe
   invisible(vcf)
 }

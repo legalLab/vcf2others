@@ -34,28 +34,38 @@ vcf2eigenstrat <- function (vcf, ind_pop, keep_pop, sex = "U", rel_pos = 0, inc_
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums(is.na(gt)), ]
   }
   vcf2 <- vcf_extract_pops(vcf, ind_pop, keep_pop)
-  gt <- vcfR::extract.gt(vcf2, return.alleles = F, convertNA = T)
-  gt[is.na(gt)] <- "9"
-  gt[gt == "0/0" | gt == "0|0"] <- "0"
-  gt[gt == "1/1" | gt == "1|1"] <- "2"
-  gt[gt == "0/1" | gt == "0|1" | gt == "1/0" | gt == "1|0"] <- "1"
+  gt <- vcfR::extract.gt(vcf2, return.alleles = FALSE, convertNA = TRUE) %>%
+    tibble::as_tibble()
+  gt_table <- arrow::as_arrow_table(gt) %>%
+    dplyr::mutate(across(everything(), ~ dplyr::case_when(
+      is.na(.) ~ "9",
+      . == "0/0" | . == "0|0" ~ "0",
+      . == "1/1" | . == "1|1" ~ "2",
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "1",
+      TRUE ~ .
+    ))) %>%
+    dplyr::collect()
 
-  df <- apply(gt, 1, function(x){glue::glue_collapse(x)})
-  utils::write.table(df, file = paste(out_file, ".geno", sep = ""), quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
+  df_geno <- apply(as.matrix(gt_table), 1, function(x) glue::glue_collapse(x))
+  utils::write.table(df_geno, file = paste(out_file, ".geno", sep = ""),
+                     quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 
-  df <- cbind(colnames(gt), sex, as.character(ind_pop))
-  utils::write.table(df, file = paste(out_file, ".ind", sep = ""), quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
+  df_ind <- cbind(colnames(gt), sex, as.character(ind_pop))
+  utils::write.table(df_ind, file = paste(out_file, ".ind", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
 
-  #rel_pos <- getPOS(vcf2)/1000
-  df <- cbind(vcfR::getID(vcf2), vcfR::getCHROM(vcf2), rel_pos, vcfR::getPOS(vcf2), vcfR::getREF(vcf2), vcfR::getALT(vcf2))
-  utils::write.table(df, file = paste(out_file, ".snp", sep = ""), quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
+  #rel_pos <- vcfR::getPOS(vcf2) / 1000  # Calculate relative positions - fix
+  df_snp <- cbind(vcfR::getID(vcf2), vcfR::getCHROM(vcf2), rel_pos,
+                  vcfR::getPOS(vcf2), vcfR::getREF(vcf2), vcfR::getALT(vcf2))
+  utils::write.table(df_snp, file = paste(out_file, ".snp", sep = ""),
+                     quote = FALSE, sep = "\t", col.names = FALSE, row.names = FALSE)
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

@@ -31,10 +31,10 @@ vcf2arlequin <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = 
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums(is.na(gt)), ]
   }
   vcf_list <- lapply(keep_pop, function(x) {
@@ -44,23 +44,26 @@ vcf2arlequin <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = 
   pop_list <- vector(mode = "list", length = length(vcf_list))
   names(pop_list) <- names(vcf_list)
 
-  for (i in 1:length(vcf_list)) {
-    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = T, convertNA = T) #convertNA not working here
-    gt[gt == "."] <- "?/?"
-    allele1 <- apply(gt, MARGIN = 2, function(x) {
-      substr(x, 1, 1)
-    })
-    rownames(allele1) <- NULL
-    allele1 <- t(allele1)
-    rownames(allele1) <- paste(rownames(allele1), "_1",
-                               sep = "")
-    allele2 <- apply(gt, MARGIN = 2, function(x) {
-      substr(x, 3, 3)
-    })
-    rownames(allele2) <- NULL
-    allele2 <- t(allele2)
-    rownames(allele2) <- paste(rownames(allele2), "_2",
-                               sep = "")
+  for (i in seq_along(vcf_list)) {
+    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = FALSE, convertNA = TRUE) %>%
+      tibble::as_tibble()
+
+    allele1 <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ if_else(is.na(.), "?/?", .))) %>%
+      dplyr::mutate(across(everything(), ~ substr(., 1, 1))) %>%
+      dplyr::collect() %>%
+      t() %>%
+      as.data.frame()
+    rownames(allele1) <- paste0(rownames(allele1), "_1")
+
+    allele2 <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ if_else(is.na(.), "?/?", .))) %>%
+      dplyr::mutate(across(everything(), ~ substr(., 3, 3))) %>%
+      dplyr::collect() %>%
+      t() %>%
+      as.data.frame()
+    rownames(allele2) <- paste0(rownames(allele2), "_2")
+
     pop_list[[i]][[1]] <- allele1
     pop_list[[i]][[2]] <- allele2
   }
@@ -81,9 +84,9 @@ vcf2arlequin <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = 
   write(paste("#There are ", nrow(vcf), " SNPs", sep = ""), file = out_file, append = TRUE)
   write("", file = out_file, append = TRUE)
 
-  for (i in 1:length(pop_list)) {
-    write(paste("SampleName = ", "'", names(pop_list)[i], "'", sep = ""), file = out_file, append = TRUE)
-    write(paste("SampleSize = ", nrow(pop_list[[i]][[1]]), sep = ""), file = out_file, append = TRUE)
+  for (i in seq_along(pop_list)) {
+    write(paste0("SampleName = ", "'", names(pop_list)[i], "'"), file = out_file, append = TRUE)
+    write(paste0("SampleSize = ", nrow(pop_list[[i]][[1]])), file = out_file, append = TRUE)
     write("SampleData={", file = out_file, append = TRUE)
 
     for (j in 1:nrow(pop_list[[i]][[1]])) {
@@ -104,9 +107,9 @@ vcf2arlequin <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = 
   write("", file = out_file, append = TRUE)
   write("Group = {",  file = out_file, append = TRUE)
   for (i in 1:length(names(pop_list))) {
-    write(paste("\t\t", "\"", names(pop_list)[i], "\"", sep = ""),  file = out_file, append = TRUE)
+    write(paste0("\t\t", "\"", names(pop_list)[i], "\""),  file = out_file, append = TRUE)
   }
   write("}",  file = out_file, append = TRUE)
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

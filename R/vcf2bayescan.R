@@ -32,10 +32,10 @@ vcf2bayescan <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
     stop(paste("Expecting population vector, received a",
                class(ind_pop), "and", class(keep_pop), "instead"))
   }
-  vcf <- vcfR::extract.indels(vcf, return.indels = F)
+  vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   if (inc_missing == FALSE) {
-    gt <- vcfR::extract.gt(vcf, convertNA = T)
+    gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
     vcf <- vcf[!rowSums((is.na(gt))), ]
   }
   vcf_list <- lapply(keep_pop, function(x) {
@@ -45,19 +45,21 @@ vcf2bayescan <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
   pop_list <- vector(mode = "list", length = length(vcf_list))
   names(pop_list) <- names(vcf_list)
 
-  for (i in 1:length(vcf_list)) {
-    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = F, convertNA = T) #convertNA not working here
-    allele1 <- apply(gt, MARGIN = 2, function(x) {
-      substr(x, 1, 1)
-    })
-    rownames(allele1) <- c(1:nrow(allele1))
-    allele2 <- apply(gt, MARGIN = 2, function(x) {
-      substr(x, 3, 3)
-    })
-    rownames(allele2) <- c(1:nrow(allele1))
+  for (i in seq_along(vcf_list)) {
+    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = FALSE, convertNA = TRUE) %>%
+      tibble::as_tibble()
 
-    pop_list[[i]][[3]] <- apply(cbind(allele1, allele2), 1, function(x){sum(x == 0, na.rm = TRUE)})
-    pop_list[[i]][[4]] <- apply(cbind(allele1, allele2), 1, function(x){sum(x == 1, na.rm = TRUE)})
+    allele1 <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ substr(., 1, 1))) %>%
+      dplyr::collect()
+
+    allele2 <- arrow::as_arrow_table(gt) %>%
+      dplyr::mutate(across(everything(), ~ substr(., 3, 3))) %>%
+      dplyr::collect()
+
+    pop_list[[i]][[3]] <- rowSums(cbind(allele1, allele2) == "0", na.rm = TRUE)
+    pop_list[[i]][[4]] <- rowSums(cbind(allele1, allele2) == "1", na.rm = TRUE)
+
     pop_list[[i]][[1]] <- pop_list[[i]][[3]] + pop_list[[i]][[4]]
     pop_list[[i]][[2]] <- rep(2, length(pop_list[[i]][[1]]))
   }
@@ -66,11 +68,12 @@ vcf2bayescan <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
   write("", file = out_file, append = TRUE)
   write(paste("[populations]=", length(pop_list), sep = ""), file = out_file, append = TRUE)
 
-  for (i in 1:length(pop_list)) {
+  for (i in seq_along(pop_list)) {
     write("", file = out_file, append = TRUE)
     write(paste("[pop]=", i, sep = ""), file = out_file, append = TRUE)
-    utils::write.table(pop_list[[i]], file = out_file, quote = FALSE, sep = "\t", col.names = FALSE, row.names = TRUE, append = TRUE)
+    utils::write.table(pop_list[[i]], file = out_file, quote = FALSE, sep = "\t",
+                       col.names = FALSE, row.names = TRUE, append = TRUE)
   }
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

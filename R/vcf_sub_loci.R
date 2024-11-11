@@ -16,11 +16,11 @@
 #'
 
 vcf_sub_loci <- function(vcf, n_loci = 1000) {
-  gt <- vcfR::extract.gt(vcf, convertNA = T)
+  gt <- vcfR::extract.gt(vcf)
   # get number of snps in vcf
   n_snps <- nrow(gt)
 
-  x <- sample(1:n_snps, n_loci)
+  x <- sort(sample(1:n_snps, n_loci))
 
   vcf <- vcf[x,]
 
