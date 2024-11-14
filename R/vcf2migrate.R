@@ -8,6 +8,7 @@
 #' @param keep_pop -> population(s) of interest to include in MigrateN infile (factor)
 #' @param inc_missing -> include missing data (logical)
 #' @param out_file -> name of file to output (MigrateN infile)
+#' @param method -> classic or het format
 #' @export
 #' @return nothing
 #'
