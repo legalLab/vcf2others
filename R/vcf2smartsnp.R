@@ -47,7 +47,7 @@ vcf2smartsnp <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
       . == "0/0" | . == "0|0" ~ "0",
       . == "1/1" | . == "1|1" ~ "2",
       . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "1",
-      TRUE ~ .
+      TRUE ~ as.character(.)
     ))) %>%
     dplyr::collect() %>%
     as.data.frame()

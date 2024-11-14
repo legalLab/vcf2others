@@ -20,7 +20,7 @@ vcf_filter_oneSNP <- function(vcf) {
   chrom <- vcfR::getCHROM(vcf)
 
   # keep only those loci with 1 SNP
-  vcf <- vcf[!duplicated(chrom),]
+  vcf <- vcf[!duplicated(chrom), ]
 
   return(vcf)
 }

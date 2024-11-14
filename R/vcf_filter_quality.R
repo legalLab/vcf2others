@@ -19,7 +19,7 @@ vcf_filter_quality <- function(vcf, qual = 20) {
     print("No quality information in VCF; keeping VCF as is")
   } else {
     # keep only those loci with minimum quality
-    vcf <- vcf[vcfR::getQUAL(vcf) >= qual,]
+    vcf <- vcf[vcfR::getQUAL(vcf) >= qual, ]
   }
 
   return(vcf)

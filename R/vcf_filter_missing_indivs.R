@@ -23,18 +23,17 @@ vcf_filter_missing_indivs <- function(vcf, p_miss, f_invar = TRUE) {
   n_snps <- nrow(gt)
 
   cols_to_keep <- arrow::as_arrow_table(gt) %>%
-    dplyr::summarise(across(everything(), ~ mean(is.na(.))  < p_miss)) %>%
+    dplyr::summarise(across(everything(), ~ mean(is.na(.)) < p_miss)) %>%
     dplyr::collect() %>%
     unlist()
   vcf <- vcf[, c(TRUE, cols_to_keep)] %>%
     {if (f_invar == TRUE) vcf_filter_invariant(.) else .}
 
   removed_samples <- colnames(gt)[!cols_to_keep]
-  cat(paste0("Removed samples are: ", paste(removed_samples, collapse = "\n"), "\n"))
+  cat(paste0("Removed samples are:\n", paste(removed_samples, collapse = "\n"), "\n"))
 
   # print VCF matrix completeness
-  vcf1 <- vcf_filter_oneSNP(vcf)
-  gt <- vcfR::extract.gt(vcf1, convertNA = TRUE) %>%
+  gt <- vcfR::extract.gt(vcf, convertNA = TRUE) %>%
     tibble::as_tibble()
   p_missing <- arrow::as_arrow_table(gt) %>%
     dplyr::summarise(across(everything(), ~ sum(is.na(.)))) %>%
@@ -42,7 +41,7 @@ vcf_filter_missing_indivs <- function(vcf, p_miss, f_invar = TRUE) {
     unlist() %>%
     {sum(.) / (ncol(gt) * nrow(gt))}
 
-  print(paste0("final % missing data in VCF is ", round(p_missing*100, 2), "%"))
+  cat(paste0("Final % missing data in VCF is ", round(p_missing*100, 2), "%\n"))
 
   return(vcf)
 }

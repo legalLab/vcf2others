@@ -65,5 +65,5 @@ vcf2fasta <-function (vcf, ind_pop, keep_pop, interleaved = FALSE, inc_missing =
 
   ape::write.dna(gt_table, out_file, format = "fasta", nbcol = nbcol, colsep = "")
 
-  return(invisible(NULL))
+  invisible(vcf)
 }

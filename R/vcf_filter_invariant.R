@@ -16,16 +16,13 @@
 #'
 
 vcf_filter_invariant <- function(vcf) {
-  gt <- vcfR::extract.gt(vcf, convertNA = TRUE) %>%
-    t() %>%
-    tibble::as_tibble()
+  gt <- vcfR::extract.gt(vcf, convertNA = TRUE)
 
   # remove invariant loci
-  rows_to_keep <- arrow::as_arrow_table(gt) %>%
-    dplyr::summarise(across(everything(), ~ length(unique(na.omit(.))) > 1)) %>%
-    dplyr::collect() %>%
-    unlist()
+  unique_counts <- apply(gt, 1, function(x) length(unique(na.omit(x))))
+  rows_to_keep <- unique_counts > 1
   vcf <- vcf[rows_to_keep, ]
 
   return(vcf)
 }
+

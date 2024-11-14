@@ -19,18 +19,19 @@ vcf_filter_hets <- function(vcf, hets = .4) {
   vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
   gt <- vcfR::extract.gt(vcf, return.alleles = FALSE, convertNA = TRUE) %>%
-    t() %>%
     tibble::as_tibble()
-  rows_to_keep <- arrow::as_arrow_table(gt) %>%
+  gt_table <- arrow::as_arrow_table(gt) %>%
     dplyr::mutate(across(everything(), ~ case_when(
       . == "0/0" | . == "0|0" ~ 0L,
       . == "1/1" | . == "1|1" ~ 1L,
       . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ 2L,
       TRUE ~ NA_integer_
     ))) %>%
-    dplyr::summarise(across(everything(), ~ sum(. == 2, na.rm = TRUE) / sum(!is.na(.)) < hets)) %>%
-    dplyr::collect() %>%
-    unlist()
+    dplyr::collect()
+
+  rows_to_keep <- apply(gt_table, MARGIN = 1,
+                        function(x){sum(x == 2, na.rm = TRUE) /
+                            (2*sum(!is.na(x), na.rm = TRUE))}) < hets
 
   vcf <- vcf[rows_to_keep, ]
 

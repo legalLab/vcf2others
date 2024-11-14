@@ -23,17 +23,17 @@
 vcf_stats <- function(vcf, res_path, project) {
   vcf <- vcfR::extract.indels(vcf, return.indels = FALSE)
   vcf <- vcf[vcfR::is.biallelic(vcf), ]
-  dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE) %>%
-    tibble::as_tibble()
-  dp_table <- arrow::as_arrow_table(dp)
+  dp_table <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE) %>%
+    tibble::as_tibble() %>%
+    arrow::as_arrow_table()
   gt <- vcfR::extract.gt(vcf, return.alleles = FALSE, convertNA = TRUE) %>%
     tibble::as_tibble()
   gt_table <- arrow::as_arrow_table(gt) %>%
     dplyr::mutate(across(everything(), ~ dplyr::case_when(
-      . == "0/0" | . == "0|0" ~ "0",
-      . == "1/1" | . == "1|1" ~ "1",
-      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "2",
-      TRUE ~ .
+      . == "0/0" | . == "0|0" ~ 0L,
+      . == "1/1" | . == "1|1" ~ 1L,
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ 2L,
+      TRUE ~ NA_integer_
     )))
   samples <- colnames(gt)
 
@@ -74,7 +74,7 @@ vcf_stats <- function(vcf, res_path, project) {
     total = loc_n
   )
 
-  arrow::write_csv_arrow(stats, paste0(res_path, project, "_stats.csv"))
+  write.table(stats, file = paste0(res_path, project, "_stats.csv"), row.names = FALSE, quote = FALSE, sep = ",")
 
   # invisible return of the first argument so function can be used in a pipe
   invisible(vcf)

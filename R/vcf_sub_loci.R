@@ -20,9 +20,9 @@ vcf_sub_loci <- function(vcf, n_loci = 1000) {
   # get number of snps in vcf
   n_snps <- nrow(gt)
 
-  x <- sort(sample(1:n_snps, n_loci))
+  rows_to_keep <- sort(sample(1:n_snps, n_loci))
 
-  vcf <- vcf[x,]
+  vcf <- vcf[rows_to_keep, ]
 
   return(vcf)
 }

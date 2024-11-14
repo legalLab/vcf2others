@@ -74,7 +74,7 @@ vcf2genepop <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
       ))) %>%
       dplyr::collect() %>%
       t() %>%
-      as.matrix()
+      as.data.frame()
 
     write(paste0("pop ", names(pop_list)[i]), file = out_file, append = TRUE)
     utils::write.table(cbind(sep = ',', gt), file = out_file, quote = FALSE, sep = " ", col.names = FALSE, append = TRUE)

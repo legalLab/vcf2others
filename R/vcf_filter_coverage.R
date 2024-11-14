@@ -15,9 +15,20 @@
 #'
 
 vcf_filter_coverage <- function(vcf, cover = 10, f_invar = TRUE) {
-  dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE)
-  # convert loci below threshold to missing
-  vcf@gt[,-1][dp < cover] <- "./.:0:.,.,.:0,0:0,0"
+  dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE) %>%
+    tibble::as_tibble()
+
+  # create a matrix indicating positions below the coverage threshold
+  mask <- arrow::as_arrow_table(dp) %>%
+    dplyr::mutate(across(everything(), ~ . < cover)) %>%
+    dplyr::collect() %>%
+    as.matrix()
+
+  # replace loci below threshold in genotype data
+  gt_matrix <- as.matrix(vcf@gt[,-1])
+  gt_matrix[mask] <- "./.:0:.,.,.:0,0:0,0"
+  vcf@gt[,-1] <- gt_matrix
+
   # remove missing data
   if (f_invar == TRUE) vcf <- vcf_filter_invariant(vcf)
 

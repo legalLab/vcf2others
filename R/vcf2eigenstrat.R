@@ -49,11 +49,11 @@ vcf2eigenstrat <- function (vcf, ind_pop, keep_pop, sex = "U", rel_pos = 0, inc_
       . == "0/0" | . == "0|0" ~ "0",
       . == "1/1" | . == "1|1" ~ "2",
       . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "1",
-      TRUE ~ .
+      TRUE ~ as.character(.)
     ))) %>%
     dplyr::collect()
 
-  df_geno <- apply(as.matrix(gt_table), 1, function(x) glue::glue_collapse(x))
+  df_geno <- apply(gt_table, 1, function(x) glue::glue_collapse(x))
   utils::write.table(df_geno, file = paste(out_file, ".geno", sep = ""),
                      quote = FALSE, sep = " ", col.names = FALSE, row.names = FALSE)
 

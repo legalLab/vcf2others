@@ -23,7 +23,7 @@ vcf_filter_rank <- function(vcf, rank = .4) {
   snp_rank <- stringr::str_extract(vcf@fix[,8], "Rk=[0-9|.]*") %>%
     stringr::str_extract("[^Rk=]+")
   # keep only those loci with minimum rank
-  vcf <- vcf[snp_rank >= rank,]
+  vcf <- vcf[snp_rank >= rank, ]
 
   return(vcf)
 }

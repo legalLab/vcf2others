@@ -26,6 +26,7 @@ vcf_filter_multiSNP <- function(vcf, minS = 2, maxS = 5) {
     id = vcfR::getID(vcf)
   )
 
+  chrom = vcfR::getCHROM(vcf)
   keeper <- chrom_id_table %>%
     dplyr::group_by(chrom) %>%
     dplyr::summarise(n = dplyr::n()) %>%
