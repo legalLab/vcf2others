@@ -9,7 +9,8 @@ vcf2migrate(
   ind_pop,
   keep_pop,
   inc_missing = TRUE,
-  out_file = "migrateN_infile.txt"
+  out_file = "migrateN_infile.txt",
+  method = "N"
 )
 
 vcf2migrate(
@@ -17,7 +18,8 @@ vcf2migrate(
   ind_pop,
   keep_pop,
   inc_missing = TRUE,
-  out_file = "migrateN_infile.txt"
+  out_file = "migrateN_infile.txt",
+  method = "N"
 )
 }
 \arguments{
