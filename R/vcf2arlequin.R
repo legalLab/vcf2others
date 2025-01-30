@@ -45,24 +45,22 @@ vcf2arlequin <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = 
   names(pop_list) <- names(vcf_list)
 
   for (i in seq_along(vcf_list)) {
-    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = FALSE, convertNA = TRUE) %>%
+    gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = TRUE, convertNA = TRUE) %>%
       tibble::as_tibble()
 
     allele1 <- arrow::as_arrow_table(gt) %>%
-      dplyr::mutate(across(everything(), ~ if_else(is.na(.), "?/?", .))) %>%
+      dplyr::mutate(across(everything(), ~ if_else(. == ".", "?/?", .))) %>%
       dplyr::mutate(across(everything(), ~ substr(., 1, 1))) %>%
       dplyr::collect() %>%
       t() %>%
       as.data.frame()
-    rownames(allele1) <- paste0(rownames(allele1), "_1")
 
     allele2 <- arrow::as_arrow_table(gt) %>%
-      dplyr::mutate(across(everything(), ~ if_else(is.na(.), "?/?", .))) %>%
+      dplyr::mutate(across(everything(), ~ if_else(. == ".", "?/?", .))) %>%
       dplyr::mutate(across(everything(), ~ substr(., 3, 3))) %>%
       dplyr::collect() %>%
       t() %>%
       as.data.frame()
-    rownames(allele2) <- paste0(rownames(allele2), "_2")
 
     pop_list[[i]][[1]] <- allele1
     pop_list[[i]][[2]] <- allele2
@@ -90,7 +88,7 @@ vcf2arlequin <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = 
     write("SampleData={", file = out_file, append = TRUE)
 
     for (j in 1:nrow(pop_list[[i]][[1]])) {
-      utils::write.table(t(c(names(pop_list[[i]][[1]][j, 1]), "\t1\t", pop_list[[i]][[1]][j, ])), file = out_file,
+      utils::write.table(t(c(rownames(pop_list[[i]][[1]][j, ]), "\t1\t", pop_list[[i]][[1]][j, ])), file = out_file,
                          append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE,
                          col.names = FALSE)
       utils::write.table(t(c("\t\t\t\t\t", pop_list[[i]][[2]][j, ])), file = out_file,
