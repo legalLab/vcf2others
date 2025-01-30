@@ -81,9 +81,9 @@ vcf2structure <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file =
   if (method == "S") {
     for (i in seq_along(pop_list)) {
       for (j in 1:nrow(pop_list[[i]][[1]])) {
-        utils::write.table(t(c(names(pop_list[[i]][[1]][j, 1]), i, pop_list[[i]][[1]][j, ])), file = out_file,
+        utils::write.table(t(c(rownames(pop_list[[i]][[1]][j, ]), i, pop_list[[i]][[1]][j, ])), file = out_file,
                            append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
-        utils::write.table(t(c(names(pop_list[[i]][[2]][j, 1]), i, pop_list[[i]][[2]][j, ])), file = out_file,
+        utils::write.table(t(c(rownames(pop_list[[i]][[2]][j, ]), i, pop_list[[i]][[2]][j, ])), file = out_file,
                            append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
       }
     }
@@ -92,9 +92,9 @@ vcf2structure <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file =
     fill <- rep(0, 4)
     for (i in seq_along(pop_list)) {
       for (j in 1:nrow(pop_list[[i]][[1]])) {
-        utils::write.table(t(c(names(pop_list[[i]][[1]][j, 1]), i, fill, pop_list[[i]][[1]][j, ])), file = out_file,
+        utils::write.table(t(c(rownames(pop_list[[i]][[1]][j, ]), i, fill, pop_list[[i]][[1]][j, ])), file = out_file,
                            append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
-        utils::write.table(t(c(names(pop_list[[i]][[2]][j, 1]), i, fill, pop_list[[i]][[2]][j, ])), file = out_file,
+        utils::write.table(t(c(rownames(pop_list[[i]][[2]][j, ]), i, fill, pop_list[[i]][[2]][j, ])), file = out_file,
                            append = TRUE, quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
       }
     }
