@@ -56,8 +56,8 @@ vcf2genepop <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
 
   for (i in seq_along(vcf_list)) {
     gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = TRUE, convertNA = TRUE) %>%
-      tibble::as_tibble()
-    gt_table <- arrow::as_arrow_table(gt) %>%
+      tibble::as_tibble() %>%
+      arrow::as_arrow_table() %>%
       dplyr::mutate(across(everything(), ~ dplyr::case_when(
         . == "." ~ "0000",
         . == "A/A" | . == "A|A" ~ "0101",
