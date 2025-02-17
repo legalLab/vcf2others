@@ -46,8 +46,8 @@ vcf2snapp <-function (vcf, ind_pop, keep_pop, inc_missing = TRUE, out_file = "sn
     dplyr::mutate(across(everything(), ~ dplyr::case_when(
       is.na(.) ~ "?",
       . == "0/0" | . == "0|0" ~ "0",
-      . == "1/1" | . == "1|1" ~ "1",
-      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "2",
+      . == "1/1" | . == "1|1" ~ "2",
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ "1",
       TRUE ~ .
     ))) %>%
     dplyr::collect() %>%
