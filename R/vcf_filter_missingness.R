@@ -20,8 +20,8 @@ vcf_filter_missingness <- function(vcf, p_miss) {
   # get number of samples in vcf
   n_samples <- ncol(gt)
 
-  # keep only those loci with < % missing data
-  rows_to_keep <- rowSums(is.na(gt)) / n_samples < p_miss
+  # keep only those loci with <= % missing data
+  rows_to_keep <- rowSums(is.na(gt)) / n_samples <= p_miss
   vcf <- vcf[rows_to_keep, ]
 
   # print VCF matrix completeness
