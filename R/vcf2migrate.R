@@ -8,7 +8,8 @@
 #' @param keep_pop -> population(s) of interest to include in MigrateN infile (factor)
 #' @param inc_missing -> include missing data (logical)
 #' @param out_file -> name of file to output (MigrateN infile)
-#' @param method -> classic or het format
+#' @param block_size -> size of linked SNP blocks (integer)
+#' @param method -> classic (C) or het (H) or new (un)linked SNPs (S) or alleles (A) format
 #' @export
 #' @return nothing
 #'
@@ -23,9 +24,10 @@
 #'
 
 vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
-                         out_file = "migrateN_infile.txt", method = "N")
+                         out_file = "migrateN_infile.txt", block_size = 100, 
+                         method = "S")
 {
-  method <- match.arg(method, c("N", "H"), several.ok = FALSE)
+  method <- match.arg(method, c("C", "H", "S", "A"), several.ok = FALSE)
   if (class(vcf) != "vcfR") {
     stop(paste("Expecting an object of class vcfR, received a",
                class(vcf), "instead"))
@@ -45,8 +47,8 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
   })
   names(vcf_list) <- keep_pop
 
-  if (method == "N") {
-    myHeader <- c("N", length(vcf_list), nrow(vcf_list[[1]]))
+  if (method == "C") {
+    myHeader <- c(" ", length(vcf_list), nrow(vcf_list[[1]]))
     pop_list <- vector(mode = "list", length = length(vcf_list))
     names(pop_list) <- names(vcf_list)
 
@@ -92,8 +94,71 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
       }
     }
   }
+  else if (method == "S") {
+    myHeader <- c(" ", length(vcf_list), nrow(vcf_list[[1]]))
+    pop_list <- vector(mode = "list", length = length(vcf_list))
+    names(pop_list) <- names(vcf_list)
+    
+    for (i in seq_along(vcf_list)) {
+      gt <- vcfR::extract.gt(vcf_list[[i]], return.alleles = TRUE, convertNA = TRUE) %>%
+        tibble::as_tibble()
+      
+      allele1 <- arrow::as_arrow_table(gt) %>%
+        dplyr::mutate(across(everything(), ~ if_else(. == ".", "?/?", .))) %>%
+        dplyr::mutate(across(everything(), ~ substr(., 1, 1))) %>%
+        dplyr::collect() %>%
+        t() %>%
+        as.data.frame()
+      rownames(allele1) <- paste0(rownames(allele1), "_1")
+      
+      allele2 <- arrow::as_arrow_table(gt) %>%
+        dplyr::mutate(across(everything(), ~ if_else(. == ".", "?/?", .))) %>%
+        dplyr::mutate(across(everything(), ~ substr(., 3, 3))) %>%
+        dplyr::collect() %>%
+        t() %>%
+        as.data.frame()
+      rownames(allele2) <- paste0(rownames(allele2), "_2")
+      
+      pop_list[[i]][[1]] <- allele1
+      pop_list[[i]][[2]] <- allele2
+    }
+    
+    # write header and metadata
+    write(myHeader, file = out_file, ncolumns = length(myHeader), sep = "\t")
+    if (floor(ncol(pop_list[[1]][[1]]) / block_size) == ncol(pop_list[[1]][[1]]) / block_size) {
+      n_blocks <- floor(ncol(pop_list[[1]][[1]]) / block_size)
+      write.table(matrix(rep(paste0("(n", block_size, ")"), times = n_blocks), nrow = 1),  
+                  file = out_file, append = TRUE, sep = "\t", 
+                  quote = FALSE, row.names = FALSE, col.names = FALSE)
+    } else {
+      n_blocks <- floor(ncol(pop_list[[1]][[1]]) / block_size)
+      # remaining block size
+      block_size2 <- ncol(pop_list[[1]][[1]]) - n_blocks * block_size
+      write.table(matrix(c(rep(paste0("(n", block_size, ")"), times = n_blocks), paste0("(n", block_size2, ")")), nrow = 1), 
+                  file = out_file, append = TRUE, sep = "\t", 
+                  quote = FALSE, row.names = FALSE, col.names = FALSE)
+    }
+
+    # write allele data
+    for (i in seq_along(pop_list)) {
+      popName <- c(2 * nrow(pop_list[[i]][[1]]), names(pop_list)[i])
+      write(popName, file = out_file, ncolumns = length(popName), append = TRUE, sep = "\t")
+      
+      for (j in seq_len(nrow(pop_list[[i]][[1]]))) {
+        utils::write.table(t(c(rownames(pop_list[[i]][[1]][j, ]), "\t", pop_list[[i]][[1]][j, ])), file = out_file,
+                           append = TRUE, quote = FALSE, sep = "", row.names = FALSE,
+                           col.names = FALSE)
+        utils::write.table(t(c(rownames(pop_list[[i]][[2]][j, ]), "\t", pop_list[[i]][[2]][j, ])), file = out_file,
+                           append = TRUE, quote = FALSE, sep = "", row.names = FALSE,
+                           col.names = FALSE)
+      }
+    }
+  }
+  else if (method == "A") {
+    stop("Alle option currently not implemented!\nUse another methods (C, S or H).") 
+  }
   else if (method == "H") {
-    myHeader <- c("H", length(vcf_list), nrow(vcf_list[[1]]))
+    myHeader <- c(" ", length(vcf_list), nrow(vcf_list[[1]]))
     pop_list <- vector(mode = "list", length = length(vcf_list))
     names(pop_list) <- names(vcf_list)
 
@@ -143,7 +208,7 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
     }
   }
   else {
-    stop("You should never get here!\nMethods are N or H.")
+    stop("You should never get here!\nMethods are C or H or S or A.")
   }
 
   invisible(vcf)
