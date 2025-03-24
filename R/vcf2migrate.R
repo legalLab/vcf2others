@@ -193,17 +193,17 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
     # write header and metadata
     write(myHeader, file = out_file, ncolumns = length(myHeader), sep = "\t")
     # compute intervals within each chromosome category
-    chrom <- vcfR::getCHROM(vcf)
-    pos <- vcfR::getPOS(vcf)
-    df <- cbind(chrom, pos) %>%
-      as.data.frame() %>%
-      dplyr::mutate_at('pos', as.numeric) %>%
+    chrom_pos_table <- arrow::Table$create(
+      chrom = vcfR::getCHROM(vcf),
+      pos = vcfR::getPOS(vcf)
+    )
+    df <- chrom_pos_table %>%
       dplyr::group_by(chrom) %>%
-      dplyr::mutate(
-        first_pos = min(pos),  # First position in each chrom
-        interval_within_chrom = ((pos - first_pos) %/% block_size) + 1  # compute raw interval indices
-      ) %>%
-      dplyr::mutate(interval_within_chrom = dense_rank(interval_within_chrom)) %>%  # ensure sequential numbering within chrom
+      dplyr::mutate(first_pos = min(pos)) %>%  # first position in each chrom
+      dplyr::mutate(interval_within_chrom = ((pos - first_pos) %/% block_size) + 1) %>%  # compute raw interval indices
+      dplyr::mutate(interval_within_chrom = dplyr::dense_rank(interval_within_chrom)) %>%
+      #dplyr::arrange(interval_within_chrom) %>% # ensure sequential numbering within chrom, but dense_rank() is not arrow compatible and is pulled into dplyr
+      #dplyr::mutate(interval_within_chrom = match(interval_within_chrom, sort(unique(interval_within_chrom)))) %>% match() is also not arrow compatible and is pulled into dplyr
       dplyr::ungroup()
     # create a helper dataset with the maximum interval per chrom
     max_intervals <- df %>%
