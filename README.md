@@ -279,7 +279,11 @@ using the “inc_missing = FALSE” flag. The function `vcf2genlight()`
 automatically returns a genlight object and optionally can also
 export/write a file of this format to the working directory. Generally
 the `vcf2genlight()` function is called within a script using functions
-of the `adegenet` package rather than importing the genlight object.
+of the `adegenet` package rather than importing the genlight object. The 
+function `vcf2migrate()` generates several different types of SNP compatible
+formats. Beerli recommends treating linked SNP blocks as short sequences that
+have invariant sites removed, since available models for alleles are better than
+for SNPs. Thus linked blocks are indicated as (s100) rather than (n100). 
 
 ``` r
 res_path <- data_path
