@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   vcf2others: vcf2others.html
-last_built: 2025-03-24T03:24Z
+last_built: 2025-03-24T03:43Z
 urls:
   reference: https://legallab.github.io/vcf2others/reference
   article: https://legallab.github.io/vcf2others/articles
