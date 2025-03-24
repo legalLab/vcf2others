@@ -216,6 +216,7 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
       dplyr::mutate(interval_label = interval_within_chrom + cumulative_intervals) %>%
       dplyr::group_by(interval_label) %>%
       dplyr::summarize(count = n()) %>%
+      dplyr::collect() %>%
       dplyr::select(count)
 
     utils::write.table(t(paste0("(n", interval_count[[1]], ")")),
