@@ -55,7 +55,7 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
   names(vcf_list) <- keep_pop
 
   if (method == "C") {
-    myHeader <- c(" ", length(vcf_list), nrow(vcf_list[[1]]))
+    myHeader <- c("N", length(vcf_list), nrow(vcf_list[[1]]))
     pop_list <- vector(mode = "list", length = length(vcf_list))
     names(pop_list) <- names(vcf_list)
 
@@ -134,14 +134,14 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
     write(myHeader, file = out_file, ncolumns = length(myHeader), sep = "\t")
     if (floor(ncol(pop_list[[1]][[1]]) / block_size) == ncol(pop_list[[1]][[1]]) / block_size) {
       n_blocks <- floor(ncol(pop_list[[1]][[1]]) / block_size)
-      utils::write.table(matrix(rep(paste0("(n", block_size, ")"), times = n_blocks), nrow = 1),
+      utils::write.table(matrix(rep(paste0("(s", block_size, ")"), times = n_blocks), nrow = 1),
                   file = out_file, append = TRUE, sep = "\t",
                   quote = FALSE, row.names = FALSE, col.names = FALSE)
     } else {
       n_blocks <- floor(ncol(pop_list[[1]][[1]]) / block_size)
       # remaining block size
       block_size2 <- ncol(pop_list[[1]][[1]]) - n_blocks * block_size
-      utils::write.table(matrix(c(rep(paste0("(n", block_size, ")"), times = n_blocks), paste0("(n", block_size2, ")")), nrow = 1),
+      utils::write.table(matrix(c(rep(paste0("(s", block_size, ")"), times = n_blocks), paste0("(n", block_size2, ")")), nrow = 1),
                   file = out_file, append = TRUE, sep = "\t",
                   quote = FALSE, row.names = FALSE, col.names = FALSE)
     }
@@ -219,7 +219,7 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
       dplyr::collect() %>%
       dplyr::select(count)
 
-    utils::write.table(t(paste0("(n", interval_count[[1]], ")")),
+    utils::write.table(t(paste0("(s", interval_count[[1]], ")")),
                        file = out_file, append = TRUE, sep = "\t",
                        quote = FALSE, row.names = FALSE, col.names = FALSE)
 
@@ -242,7 +242,7 @@ vcf2migrate <- function (vcf, ind_pop, keep_pop, inc_missing = TRUE,
     stop("Alle option currently not implemented!\nUse another methods (C, S or H).")
   }
   else if (method == "H") {
-    myHeader <- c(" ", length(vcf_list), nrow(vcf_list[[1]]))
+    myHeader <- c("H", length(vcf_list), nrow(vcf_list[[1]]))
     pop_list <- vector(mode = "list", length = length(vcf_list))
     names(pop_list) <- names(vcf_list)
 
