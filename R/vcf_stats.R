@@ -31,8 +31,8 @@ vcf_stats <- function(vcf, res_path, project) {
   gt_table <- arrow::as_arrow_table(gt) %>%
     dplyr::mutate(across(everything(), ~ dplyr::case_when(
       . == "0/0" | . == "0|0" ~ 0L,
-      . == "1/1" | . == "1|1" ~ 1L,
-      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ 2L,
+      . == "1/1" | . == "1|1" ~ 2L,
+      . == "0/1" | . == "0|1" | . == "1/0" | . == "1|0" ~ 1L,
       TRUE ~ NA_integer_
     )))
   samples <- colnames(gt)
@@ -42,11 +42,11 @@ vcf_stats <- function(vcf, res_path, project) {
     dplyr::collect() %>%
     unlist()
   homo_alt <- gt_table %>%
-    dplyr::summarise(across(everything(), ~ sum(. == 1, na.rm = TRUE))) %>%
+    dplyr::summarise(across(everything(), ~ sum(. == 2, na.rm = TRUE))) %>%
     dplyr::collect() %>%
     unlist()
   hetero <- gt_table %>%
-    dplyr::summarise(across(everything(), ~ sum(. == 2, na.rm = TRUE))) %>%
+    dplyr::summarise(across(everything(), ~ sum(. == 1, na.rm = TRUE))) %>%
     dplyr::collect() %>%
     unlist()
   miss <- gt_table %>%
