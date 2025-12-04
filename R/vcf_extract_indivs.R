@@ -20,6 +20,10 @@ vcf_extract_indivs <- function(vcf, indiv, whitelist = TRUE, f_invar = TRUE) {
   # read all sample names in vcf
   vcf_names <- colnames(vcf@gt)[-1]
 
+  # remove any individuals from indiv list if they do not exist
+  # do not throw error when trying to remove individuals that do not exist
+  indiv <- indiv[indiv %in% vcf_names]
+
   # allow empty indiv list - keep all individuals
   if (length(indiv) == 0){
     indiv <- vcf_names
