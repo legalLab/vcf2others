@@ -1,0 +1,72 @@
+# Package index
+
+## All functions
+
+- [`assess_vcf_missing_data()`](https://legallab.github.io/vcf2others/reference/assess_vcf_missing_data.md)
+  : assess_vcf_missing_data
+- [`get_vcf_group_info()`](https://legallab.github.io/vcf2others/reference/get_vcf_group_info.md)
+  : get_vcf_group_info
+- [`vcf2apparent()`](https://legallab.github.io/vcf2others/reference/vcf2apparent.md)
+  : vcf2apparent
+- [`vcf2arlequin()`](https://legallab.github.io/vcf2others/reference/vcf2arlequin.md)
+  : vcf2arlequin
+- [`vcf2bayescan()`](https://legallab.github.io/vcf2others/reference/vcf2bayescan.md)
+  : vcf2bayescan
+- [`vcf2df()`](https://legallab.github.io/vcf2others/reference/vcf2df.md)
+  : vcf2df
+- [`vcf2eigenstrat()`](https://legallab.github.io/vcf2others/reference/vcf2eigenstrat.md)
+  : vcf2eigenstrat
+- [`vcf2fasta()`](https://legallab.github.io/vcf2others/reference/vcf2fasta.md)
+  : vcf2fasta
+- [`vcf2fineRadStructure()`](https://legallab.github.io/vcf2others/reference/vcf2fineRadStructure.md)
+  : vcf2fineRadStructure
+- [`vcf2genepop()`](https://legallab.github.io/vcf2others/reference/vcf2genepop.md)
+  : vcf2genepop
+- [`vcf2genlight()`](https://legallab.github.io/vcf2others/reference/vcf2genlight.md)
+  : vcf2genlight
+- [`vcf2migrate()`](https://legallab.github.io/vcf2others/reference/vcf2migrate.md)
+  : vcf2migrate
+- [`vcf2nexus()`](https://legallab.github.io/vcf2others/reference/vcf2nexus.md)
+  : vcf2nexus
+- [`vcf2related()`](https://legallab.github.io/vcf2others/reference/vcf2related.md)
+  : vcf2related
+- [`vcf2smartsnp()`](https://legallab.github.io/vcf2others/reference/vcf2smartsnp.md)
+  : vcf2smartsnp
+- [`vcf2snapp()`](https://legallab.github.io/vcf2others/reference/vcf2snapp.md)
+  : vcf2snapp
+- [`vcf2structure()`](https://legallab.github.io/vcf2others/reference/vcf2structure.md)
+  : vcf2structure
+- [`vcf2treemix()`](https://legallab.github.io/vcf2others/reference/vcf2treemix.md)
+  : vcf2treemix
+- [`vcf_add_indivs()`](https://legallab.github.io/vcf2others/reference/vcf_add_indivs.md)
+  : vcf_add_indivs
+- [`vcf_extract_indivs()`](https://legallab.github.io/vcf2others/reference/vcf_extract_indivs.md)
+  : vcf_extract_indivs
+- [`vcf_extract_pops()`](https://legallab.github.io/vcf2others/reference/vcf_extract_pops.md)
+  : vcf_extract_pops
+- [`vcf_filter_coverage()`](https://legallab.github.io/vcf2others/reference/vcf_filter_coverage.md)
+  : vcf_filter_coverage
+- [`vcf_filter_hets()`](https://legallab.github.io/vcf2others/reference/vcf_filter_hets.md)
+  : vcf_filter_hets
+- [`vcf_filter_invariant()`](https://legallab.github.io/vcf2others/reference/vcf_filter_invariant.md)
+  : vcf_filter_invariant
+- [`vcf_filter_maf()`](https://legallab.github.io/vcf2others/reference/vcf_filter_maf.md)
+  : vcf_filter_maf
+- [`vcf_filter_missing_indivs()`](https://legallab.github.io/vcf2others/reference/vcf_filter_missing_indivs.md)
+  : vcf_filter_missing_indivs
+- [`vcf_filter_missingness()`](https://legallab.github.io/vcf2others/reference/vcf_filter_missingness.md)
+  : vcf_filter_missingness
+- [`vcf_filter_multiSNP()`](https://legallab.github.io/vcf2others/reference/vcf_filter_multiSNP.md)
+  : vcf_filter_multiSNP
+- [`vcf_filter_oneSNP()`](https://legallab.github.io/vcf2others/reference/vcf_filter_oneSNP.md)
+  : vcf_filter_oneSNP
+- [`vcf_filter_quality()`](https://legallab.github.io/vcf2others/reference/vcf_filter_quality.md)
+  : vcf_filter_quality
+- [`vcf_filter_rank()`](https://legallab.github.io/vcf2others/reference/vcf_filter_rank.md)
+  : vcf_filter_rank
+- [`vcf_merge()`](https://legallab.github.io/vcf2others/reference/vcf_merge.md)
+  : vcf_merge
+- [`vcf_stats()`](https://legallab.github.io/vcf2others/reference/vcf_stats.md)
+  : vcf_stats
+- [`vcf_sub_loci()`](https://legallab.github.io/vcf2others/reference/vcf_sub_loci.md)
+  : vcf_sub_loci
